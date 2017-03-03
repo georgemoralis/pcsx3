@@ -1,29 +1,54 @@
-<UI version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>pcsx3guiClass</class>
- <widget class="QMainWindow" name="pcsx3guiClass" >
-  <property name="objectName" >
-   <string notr="true">pcsx3guiClass</string>
-  </property>
-  <property name="geometry" >
+ <widget class="QMainWindow" name="pcsx3guiClass">
+  <property name="geometry">
    <rect>
-	<x>0</x>
-	<y>0</y>
-	<width>600</width>
-	<height>400</height>
+    <x>0</x>
+    <y>0</y>
+    <width>774</width>
+    <height>544</height>
    </rect>
   </property>
-  <property name="windowTitle" >
-   <string>pcsx3gui</string>
+  <property name="windowTitle">
+   <string>pcsx3</string>
   </property>
-  <widget class="QMenuBar" name="menuBar" />
-  <widget class="QToolBar" name="mainToolBar" />
-  <widget class="QWidget" name="centralWidget" />
-  <widget class="QStatusBar" name="statusBar" />
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>774</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuOpen">
+    <property name="title">
+     <string>Open</string>
+    </property>
+   </widget>
+   <addaction name="menuOpen"/>
+  </widget>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
+ <layoutdefault spacing="6" margin="11"/>
  <resources>
-   <include location="pcsx3gui.qrc"/>
+  <include location="pcsx3gui.qrc"/>
  </resources>
  <connections/>
-</UI>
+</ui>

@@ -108,7 +108,9 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common.h" />
     <ClInclude Include="GeneratedFiles\ui_pcsx3gui.h" />
+    <ClInclude Include="types.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="pcsx3gui.qrc">

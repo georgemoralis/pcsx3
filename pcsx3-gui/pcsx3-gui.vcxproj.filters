@@ -67,5 +67,11 @@
     <ClInclude Include="GeneratedFiles\ui_pcsx3gui.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
