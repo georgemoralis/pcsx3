@@ -2,7 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_pcsx3gui.h"
-
+#include "GameListViewer.h"
 class pcsx3gui : public QMainWindow
 {
 	Q_OBJECT
@@ -12,4 +12,5 @@ public:
 
 private:
 	Ui::pcsx3guiClass ui;
+	GameListViewer* game_list;
 };
