@@ -1,0 +1,6 @@
+.vs/*
+pcsx3.VC.db
+pcsx3.VC.VC.opendb
+pcsx3-gui/GeneratedFiles/*
+pcsx3-gui/x64/*
+x64/Debug/*
