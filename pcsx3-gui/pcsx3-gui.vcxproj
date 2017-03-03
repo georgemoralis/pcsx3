@@ -68,6 +68,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fsFile.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_pcsx3gui.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -109,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
+    <ClInclude Include="fsFile.h" />
     <ClInclude Include="GeneratedFiles\ui_pcsx3gui.h" />
     <ClInclude Include="types.h" />
   </ItemGroup>
