@@ -57,16 +57,6 @@ void GameListViewer::AddEntry(const QList<QStandardItem*>& entry_items) {
 
 void GameListViewer::ValidateEntry(const QModelIndex& item) {
 	// We don't care about the individual QStandardItem that was selected, but its row.
-	/*int row = item_model->itemFromIndex(item)->row();
-	QStandardItem* child_file = item_model->invisibleRootItem()->child(row, COLUMN_NAME);
-	QString file_path = child_file->data(GameListItemPath::FullPathRole).toString();
-
-	if (file_path.isEmpty())
-		return;
-	std::string std_file_path(file_path.toStdString());
-	if (!FileUtil::Exists(std_file_path) || FileUtil::IsDirectory(std_file_path))
-		return;
-	emit GameChosen(file_path);*/
 }
 
 void GameListViewer::DonePopulating() {
