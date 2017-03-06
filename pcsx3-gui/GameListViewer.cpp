@@ -134,18 +134,22 @@ void GameListWorker::AddEntriesToGameList(const std::string& dir_path) {
 	foreach(QFileInfo item, fList)
 	{
 		PSF psf;
-		psf.open(item.absoluteFilePath().toStdString() + "/PARAM.SFO");
+		if (!psf.open(item.absoluteFilePath().toStdString() + "/PARAM.SFO"))
+			continue;//if we can't open param.sfo go to the next entry (this doesn't support PS3 disc games yet)
+
 		std::string test =psf.get_string("TITLE_ID");
 		QString iconpath(item.absoluteFilePath() + "/ICON0.PNG");
-		emit EntryReady({
-			new GameIconItem(iconpath),
-			new GameListItem(QString::fromStdString(psf.get_string("TITLE"))),
-			new GameListItem(QString::fromStdString(psf.get_string("TITLE_ID"))),
-			new GameListItem(QString::fromStdString(psf.get_string("PS3_SYSTEM_VER"))),
-			new GameListItem(QString::fromStdString(psf.get_string("APP_VER"))),
-			new GameListItem(QString::fromStdString(psf.get_string("CATEGORY"))),
-			new GameListItem(item.fileName())
-		});
+		
+			emit EntryReady({
+				new GameIconItem(iconpath),
+				new GameListItem(QString::fromStdString(psf.get_string("TITLE"))),
+				new GameListItem(QString::fromStdString(psf.get_string("TITLE_ID"))),
+				new GameListItem(QString::fromStdString(psf.get_string("PS3_SYSTEM_VER"))),
+				new GameListItem(QString::fromStdString(psf.get_string("APP_VER"))),
+				new GameListItem(QString::fromStdString(psf.get_string("CATEGORY"))),
+				new GameListItem(item.fileName())
+			});
+		
 	}
 }
 

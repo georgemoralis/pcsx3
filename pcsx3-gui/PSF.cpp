@@ -1,6 +1,8 @@
 #include "PSF.h"
 #include "fsFile.h"
 #include "types.h"
+#include <iostream>
+#include <fstream>
 
 PSF::PSF()
 {
@@ -10,9 +12,12 @@ PSF::PSF()
 PSF::~PSF()
 {
 }
-void PSF::open(const std::string& filepath) {
+bool PSF::open(const std::string& filepath) {
 	fsFile file;
-	file.Open(filepath, fsRead);
+	if (!file.Open(filepath, fsRead))
+	{
+		return false;
+	}
 
 	const U64 psfSize = file.getFileSize();
 	psf.resize(psfSize);
@@ -34,6 +39,21 @@ void PSF::open(const std::string& filepath) {
 			map_integers[key] = (U32&)psf[header.table_data + entry.offset_data];
 		}
 	}
+	//debug code print all keys
+	std::ofstream out;
+	out.open("psf.txt", std::fstream::out | std::fstream::app);
+	out << "---------------------------------------------" << "\n";
+	for (auto stringkey : map_strings)
+	{
+		out << " " << stringkey.first << " : " << stringkey.second << "\n";
+	}
+	for (auto integerkey : map_integers)
+	{
+		out << " " << integerkey.first << " : " << integerkey.second << "\n";
+	}	
+	out << "---------------------------------------------" << "\n";
+
+	return true;
 }
 std::string PSF::get_string(const std::string& key) {
 	if (map_strings.find(key) != map_strings.end()) {

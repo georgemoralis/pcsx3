@@ -34,7 +34,7 @@ class PSF
 public:
 	PSF();
 	~PSF();
-	void open(const std::string& filepath);
+	bool open(const std::string& filepath);
 
 	// Access data
 	std::string get_string(const std::string& key);
