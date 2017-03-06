@@ -41,3 +41,10 @@ std::string PSF::get_string(const std::string& key) {
 	}
 	return "";
 }
+U32 PSF::get_integer(const std::string& key)
+{
+	if (map_strings.find(key) != map_strings.end()) {
+		return  std::stoi(map_strings.at(key)); //TODO std::invalid_argument exception if it fails?
+	}
+	return 0;
+}

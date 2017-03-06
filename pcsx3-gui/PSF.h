@@ -38,5 +38,6 @@ public:
 
 	// Access data
 	std::string get_string(const std::string& key);
+	U32 get_integer(const std::string& key);
 };
 
