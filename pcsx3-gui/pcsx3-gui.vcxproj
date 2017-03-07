@@ -92,7 +92,9 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pcsx3gui.cpp" />
+    <ClCompile Include="PKG.cpp" />
     <ClCompile Include="PSF.cpp" />
+    <ClCompile Include="sha1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="pcsx3gui.h">
@@ -132,7 +134,9 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtWidgets"</Command>
     </CustomBuild>
     <ClInclude Include="GeneratedFiles\ui_pcsx3gui.h" />
+    <ClInclude Include="PKG.h" />
     <ClInclude Include="PSF.h" />
+    <ClInclude Include="sha1.h" />
     <ClInclude Include="types.h" />
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,7 @@
 #include <QDir>
+#include <QFileDialog>
 #include "pcsx3gui.h"
+#include "pkg.h"
 
 pcsx3gui::pcsx3gui(QWidget *parent)
 	: QMainWindow(parent)
@@ -10,4 +12,10 @@ pcsx3gui::pcsx3gui(QWidget *parent)
 	ui.horizontalLayout->addWidget(game_list);
 	show();
 	game_list->PopulateAsync();
+}
+void pcsx3gui::installPKG()
+{
+	std::string file(QFileDialog::getOpenFileName(this, tr("Install PKG File"), QDir::currentPath(), tr("PKG File (*.PKG)")).toStdString());
+	PKG pkg;
+	pkg.open(file);
 }

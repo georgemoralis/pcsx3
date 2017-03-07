@@ -13,4 +13,7 @@ public:
 private:
 	Ui::pcsx3guiClass ui;
 	GameListViewer* game_list;
+
+public slots:
+    void installPKG();
 };

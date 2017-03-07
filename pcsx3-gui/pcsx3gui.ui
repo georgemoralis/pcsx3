@@ -42,13 +42,39 @@
     <property name="title">
      <string>Open</string>
     </property>
+    <addaction name="actionInstall_PKG"/>
    </widget>
    <addaction name="menuOpen"/>
   </widget>
+  <action name="actionInstall_PKG">
+   <property name="text">
+    <string>Install PKG</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="pcsx3gui.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionInstall_PKG</sender>
+   <signal>triggered()</signal>
+   <receiver>pcsx3guiClass</receiver>
+   <slot>installPKG()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>496</x>
+     <y>344</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>installPKG()</slot>
+ </slots>
 </ui>

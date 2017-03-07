@@ -29,6 +29,12 @@
     <ClCompile Include="GeneratedFiles\Release\moc_GameListViewer.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="PKG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -96,6 +102,12 @@
     </ClInclude>
     <ClInclude Include="PSF.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PKG.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sha1.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
