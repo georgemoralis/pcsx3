@@ -27,12 +27,10 @@ bool PKG::open(const std::string& filepath) {
 	const auto& header = (PKGHeader&)pkg[0];
 	
 	const auto& footer = (PKGFooter&)pkg[pkgSize-0x20];
-	unsigned char buf[8192];
-	//sha1_context sc;
-	//sha1_starts(&sc);
-	unsigned char obuf[20];
-	sha1(&pkg[0], pkgSize-0x20, obuf);
-	if (memcmp(footer.sha1, obuf, 20) != 0)
+
+	unsigned char resultsha1[20];
+	sha1(&pkg[0], pkgSize-0x20, resultsha1);
+	if (memcmp(footer.sha1, resultsha1, 20) != 0)
 	{
 		return false;
 	}
