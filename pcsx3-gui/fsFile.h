@@ -26,6 +26,7 @@ public:
 	bool IsOpen() const;
 	bool Close();
 	bool Read(void* dst, U64 size);
+	U32 ReadBytes(void* dst, U64 size);
 	bool Write(const void* src, U64 size);
 	bool Seek(S64 offset, fsSeekMode mode);
 	U64 getFileSize();
