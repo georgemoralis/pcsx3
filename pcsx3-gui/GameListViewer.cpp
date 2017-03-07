@@ -12,6 +12,7 @@ GameListViewer::GameListViewer(QWidget *parent)
 	: QWidget(parent)
 {
 	QVBoxLayout* layout = new QVBoxLayout;
+	QHBoxLayout* search_layout = new QHBoxLayout;
 	proxyModel = new QSortFilterProxyModel;
 	search_games = new QLineEdit;
 
@@ -48,7 +49,11 @@ GameListViewer::GameListViewer(QWidget *parent)
 	qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
 
 	layout->setContentsMargins(0, 0, 0, 0);
-	layout->addWidget(search_games);
+	QSpacerItem *item = new QSpacerItem(100, 1, QSizePolicy::Expanding, QSizePolicy::Fixed);
+	search_layout->setContentsMargins(0, 5, 0, 0);
+	search_layout->addSpacerItem(item);
+	search_layout->addWidget(search_games);
+	layout->addLayout(search_layout);
 	layout->addWidget(tree_view);
 	setLayout(layout);
 }
