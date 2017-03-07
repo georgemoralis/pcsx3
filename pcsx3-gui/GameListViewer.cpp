@@ -114,18 +114,15 @@ void GameListViewer::RefreshGameDirectory() {
 * be moved to another thread and properly locked to prevent concurrency issues.
 *
 * @param dir folder to check for changes in
-* @param recursion 0 if recursion is disabled. Any positive number passed to this will add each
-*        directory recursively to the watcher and will update the file list if any of the folders
-*        change. The number determines how deep the recursion should traverse.
 */
 void GameListViewer::UpdateWatcherList(const std::string& dir) {
-	watcher.addPath(QString::fromStdString(dir));
+	/*watcher.addPath(QString::fromStdString(dir));
 	QDir parent_folder(QString::fromStdString(dir));
 	QFileInfoList fList = parent_folder.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot, QDir::DirsFirst);
 	foreach(QFileInfo item, fList)
 	{
 		UpdateWatcherList(item.absoluteFilePath().toStdString());
-	}
+	}*/
 }
 
 void GameListWorker::AddEntriesToGameList(const std::string& dir_path) {
