@@ -4,6 +4,7 @@
 #include <QThreadPool>
 #include <QVBoxLayout>
 #include <QDirIterator>
+#include <QLineEdit>
 #include "GameListViewer.h"
 #include "PSF.h"
 
@@ -11,10 +12,13 @@ GameListViewer::GameListViewer(QWidget *parent)
 	: QWidget(parent)
 {
 	QVBoxLayout* layout = new QVBoxLayout;
+	proxyModel = new QSortFilterProxyModel;
+	search_games = new QLineEdit;
 
 	tree_view = new QTreeView;
 	item_model = new QStandardItemModel(tree_view);
-	tree_view->setModel(item_model);
+	proxyModel->setSourceModel(item_model);
+	tree_view->setModel(proxyModel);
 
 	tree_view->setAlternatingRowColors(true);
 	tree_view->setSelectionMode(QHeaderView::SingleSelection);
@@ -36,6 +40,7 @@ GameListViewer::GameListViewer(QWidget *parent)
 	item_model->setHeaderData(6, Qt::Horizontal, "Path");
 
 	connect(tree_view, &QTreeView::activated, this, &GameListViewer::ValidateEntry);
+	connect(search_games, &QLineEdit::textChanged, this, &GameListViewer::searchGame);
 	connect(&watcher, &QFileSystemWatcher::directoryChanged, this, &GameListViewer::RefreshGameDirectory);
 
 	// We must register all custom types with the Qt Automoc system so that we are able to use it
@@ -43,6 +48,7 @@ GameListViewer::GameListViewer(QWidget *parent)
 	qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
 
 	layout->setContentsMargins(0, 0, 0, 0);
+	layout->addWidget(search_games);
 	layout->addWidget(tree_view);
 	setLayout(layout);
 }
@@ -50,6 +56,13 @@ GameListViewer::GameListViewer(QWidget *parent)
 GameListViewer::~GameListViewer()
 {
 	emit ShouldCancelWorker();
+}
+void GameListViewer::searchGame(QString searchText)
+{
+	proxyModel->setFilterKeyColumn(1); //filter Name column only
+	QString strPattern = searchText;
+	QRegExp regExp(strPattern, Qt::CaseInsensitive);
+	proxyModel->setFilterRegExp(regExp);
 }
 void GameListViewer::AddEntry(const QList<QStandardItem*>& entry_items) {
 	item_model->invisibleRootItem()->appendRow(entry_items);

@@ -12,6 +12,7 @@
 #include <QRunnable>
 #include <QStandardItem>
 #include <QString>
+#include <QSortFilterProxyModel>
 #include "types.h"
 
 class GameListWorker;
@@ -41,8 +42,13 @@ private:
 	QTreeView* tree_view = nullptr;
 	QStandardItemModel* item_model = nullptr;
 	GameListWorker* current_worker = nullptr;
+	QLineEdit* search_games = nullptr;
+	QSortFilterProxyModel *proxyModel = nullptr;
 	QFileSystemWatcher watcher;
 	QString game_path;
+
+public slots:
+    void searchGame(QString searchText);
 };
 class GameListItem : public QStandardItem {
 
