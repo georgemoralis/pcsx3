@@ -48,9 +48,13 @@ class PKG
 {
 private:
 	std::vector<U08> pkg;
+	U64 pkgSize = 0;
+	S08 pkgSHA1[20];
 public:
 	PKG();
 	~PKG();
 	bool open(const std::string& filepath);
+	U64  getPkgSize();
+	S08*  getPkgSHA1();
 };
 
