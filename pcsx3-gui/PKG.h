@@ -13,9 +13,9 @@ enum PKGType : U16 {
 };
 
 struct PKGHeader {
-	U32 magic;                  // Magic
-	U16 pkg_revision;           // Revision
-	U16 pkg_type;               // Type
+	/*BE*/U32 magic;                  // Magic
+	/*BE*/U16 pkg_revision;           // Revision
+	/*BE*/U16 pkg_type;               // Type
 	U32 pkg_info_offset;        // Info offset
 	U32 pkg_info_count;         // Info count
 	U32 header_size;            // Header size (usually 0xC0)
@@ -56,5 +56,6 @@ public:
 	bool open(const std::string& filepath);
 	U64  getPkgSize();
 	S08*  getPkgSHA1();
+	bool extract(const std::string& filepath,std::string& failreason);
 };
 

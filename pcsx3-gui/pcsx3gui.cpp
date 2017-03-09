@@ -63,6 +63,12 @@ void pcsx3gui::installPKG()
 	}
 	else
 	{
-		QMessageBox::information(this, "Verification OK!", "Package's SHA-1 is correct", QMessageBox::Ok, 0);
+		//QMessageBox::information(this, "Verification OK!", "Package's SHA-1 is correct", QMessageBox::Ok, 0);
+		//if pkg is ok we procced with extraction
+		std::string failreason;
+		if (!pkg.extract(file, failreason))
+		{
+			QMessageBox::critical(this, "PKG ERROR", QString::fromStdString(failreason), QMessageBox::Ok, 0);
+		}
 	}
 }
