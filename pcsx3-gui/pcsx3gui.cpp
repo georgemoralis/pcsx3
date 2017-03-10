@@ -63,12 +63,22 @@ void pcsx3gui::installPKG()
 	}
 	else
 	{
-		//QMessageBox::information(this, "Verification OK!", "Package's SHA-1 is correct", QMessageBox::Ok, 0);
 		//if pkg is ok we procced with extraction
 		std::string failreason;
-		if (!pkg.extract(file, failreason))
+		QString gamedir = QDir::currentPath() + "/dev_hdd0/game/" + QString::fromStdString(pkg.getTitleID());
+		QDir dir(gamedir);
+		if (!dir.exists()) {
+			dir.mkpath(".");
+		}
+		std::string extractpath = QDir::currentPath().toStdString() + "/dev_hdd0/game/" + pkg.getTitleID() + "/";
+		if (!pkg.extract(file, extractpath, failreason))
 		{
 			QMessageBox::critical(this, "PKG ERROR", QString::fromStdString(failreason), QMessageBox::Ok, 0);
+		}
+		else
+		{
+			QMessageBox::information(this, "Extraction Finished", "Game successfully installed at "+gamedir, QMessageBox::Ok, 0);
+			game_list->RefreshGameDirectory();//force refreshing since filelistwatcher doesn't work properly
 		}
 	}
 }

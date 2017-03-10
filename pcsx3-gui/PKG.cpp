@@ -26,6 +26,9 @@ bool PKG::open(const std::string& filepath) {
 	file.Read(&pkgheader, sizeof(pkgheader));
 	//todo check if magic is valid
 
+	file.Seek(55, fsSeekSet);
+	file.Read(&pkgTitleID, sizeof(pkgTitleID));
+
 	//find the sha-1 in the last 32bytes of pkg
 	file.Seek(pkgSize - 0x20, fsSeekSet);
 	PKGFooter footer;
@@ -43,7 +46,11 @@ S08* PKG::getPkgSHA1()
 {
 	return pkgSHA1;
 }
-bool PKG::extract(const std::string& filepath,std::string& failreason)
+std::string PKG::getTitleID()
+{
+	return std::string(pkgTitleID);
+}
+bool PKG::extract(const std::string& filepath, const std::string& extractPath, std::string& failreason)
 {
 	fsFile file;
 	if (!file.Open(filepath, fsRead))
@@ -111,12 +118,13 @@ bool PKG::extract(const std::string& filepath,std::string& failreason)
 		flags &= 0xff;
 		if (flags == 4)
 		{
-			_mkdir(fname);//nasty but we will redo this
+			std::string path = extractPath + std::string(fname);
+			_mkdir(path.c_str());//nasty but we will redo this
 		}
 		else
 		{
 			fsFile out;
-			out.Open(fname, fsWrite);
+			out.Open(extractPath + fname, fsWrite);
 			out.Write(pkg + offset + file_offset, file_size);
 			out.Close();
 		}

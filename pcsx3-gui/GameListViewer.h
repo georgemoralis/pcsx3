@@ -37,7 +37,6 @@ private:
 	void ValidateEntry(const QModelIndex& item);
 	void DonePopulating();
 	void UpdateWatcherList(const std::string& path);
-	void RefreshGameDirectory();
 
 	QTreeView* tree_view = nullptr;
 	QStandardItemModel* item_model = nullptr;
@@ -46,6 +45,8 @@ private:
 	QSortFilterProxyModel *proxyModel = nullptr;
 	QFileSystemWatcher watcher;
 	QString game_path;
+public:
+	void RefreshGameDirectory();
 
 public slots:
     void searchGame(QString searchText);

@@ -50,12 +50,14 @@ private:
 	std::vector<U08> pkg;
 	U64 pkgSize = 0;
 	S08 pkgSHA1[20];
+	S08 pkgTitleID[9];
 public:
 	PKG();
 	~PKG();
 	bool open(const std::string& filepath);
 	U64  getPkgSize();
 	S08*  getPkgSHA1();
-	bool extract(const std::string& filepath,std::string& failreason);
+	std::string getTitleID();
+	bool extract(const std::string& filepath, const std::string& extractPath,std::string& failreason);
 };
 
