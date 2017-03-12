@@ -95,6 +95,7 @@
     <ClCompile Include="pcsx3gui.cpp" />
     <ClCompile Include="PKG.cpp" />
     <ClCompile Include="PSF.cpp" />
+    <ClCompile Include="PUP.cpp" />
     <ClCompile Include="sha1.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -138,6 +139,7 @@
     <ClInclude Include="GeneratedFiles\ui_pcsx3gui.h" />
     <ClInclude Include="PKG.h" />
     <ClInclude Include="PSF.h" />
+    <ClInclude Include="PUP.h" />
     <ClInclude Include="sha1.h" />
     <ClInclude Include="types.h" />
   </ItemGroup>

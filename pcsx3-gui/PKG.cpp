@@ -129,5 +129,6 @@ bool PKG::extract(const std::string& filepath, const std::string& extractPath, s
 			out.Close();
 		}
 	}
+	delete[] pkg;
 	return true;
 }

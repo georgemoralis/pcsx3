@@ -38,6 +38,9 @@
     <ClCompile Include="aes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PUP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -113,6 +116,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="aes.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PUP.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
