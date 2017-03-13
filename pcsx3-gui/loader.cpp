@@ -7,7 +7,8 @@ FileTypes detectFileType(const std::string& filepath)
 	{
 		return FILETYPE_UNKNOWN;
 	}
-	fsFile file(filepath, fsRead);
+	fsFile file;
+	file.Open(filepath, fsRead);
 	file.Seek(0, fsSeekSet);
 	U32 magic;
 	file.Read(&magic, sizeof(magic));
