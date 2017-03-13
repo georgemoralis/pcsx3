@@ -16,4 +16,5 @@ private:
 
 public slots:
     void installPKG();
+	void installFW();
 };

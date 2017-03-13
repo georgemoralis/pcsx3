@@ -44,11 +44,23 @@
     </property>
     <addaction name="actionInstall_PKG"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionInstall_FW"/>
+   </widget>
    <addaction name="menuOpen"/>
+   <addaction name="menuTools"/>
   </widget>
   <action name="actionInstall_PKG">
    <property name="text">
     <string>Install PKG</string>
+   </property>
+  </action>
+  <action name="actionInstall_FW">
+   <property name="text">
+    <string>Install FW</string>
    </property>
   </action>
  </widget>
@@ -73,8 +85,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionInstall_FW</sender>
+   <signal>triggered()</signal>
+   <receiver>pcsx3guiClass</receiver>
+   <slot>installFW()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>496</x>
+     <y>344</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>installPKG()</slot>
+  <slot>installFW()</slot>
  </slots>
 </ui>
