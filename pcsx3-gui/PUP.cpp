@@ -36,12 +36,34 @@ bool PUP::Read(const std::string& filepath)
 				U64 length = FromBigEndian(fentry.data_length);
 				U64 offset = FromBigEndian(fentry.data_offset);
 				fsFile tar;
-				tar.Open("update_files.tar", fsWrite);
+				
 				char *f = new char[length];
 				file.Seek(offset, fsSeekSet);
 				file.Read(f, length);
-				tar.Write(f, length);
-				tar.Close();
+				int off = 0;
+				for (;;)
+				{
+					tar_header& tarh = (tar_header&)f[off];
+					int filesize = parseoct(tarh.size, 12);
+					if (tarh.typeflag == '0')
+					{
+						offset_map[tarh.name] = off;
+					}
+					off += ((filesize+sizeof(tar_header) + 512 - 1) & ~(512 - 1));//alligned to 512 bytes
+					if (off > length)
+						break;
+				}
+				for (auto it = offset_map.cbegin(); it != offset_map.cend(); ++it)
+				{
+					if (it->first.find("dev_flash_") == 0)//extract only devflash files for now
+					{
+						tar_header& tarh = (tar_header&)f[it->second];
+						int filesize = parseoct(tarh.size, 12);
+						tar.Open(it->first, fsWrite);
+						tar.Write(f + ((it->second + sizeof(tar_header) + 512 - 1) & ~(512 - 1)), filesize);
+						tar.Close();
+					}
+				}	
 				break;
 			}
 		}
@@ -49,4 +71,20 @@ bool PUP::Read(const std::string& filepath)
 		return true;
 	}
 }
+/* Parse an octal number, ignoring leading and trailing nonsense. */
+int PUP::parseoct(const char *p, size_t n)
+{
+	int i = 0;
 
+	while ((*p < '0' || *p > '7') && n > 0) {
+		++p;
+		--n;
+	}
+	while (*p >= '0' && *p <= '7' && n > 0) {
+		i *= 8;
+		i += *p - '0';
+		++p;
+		--n;
+	}
+	return (i);
+}
