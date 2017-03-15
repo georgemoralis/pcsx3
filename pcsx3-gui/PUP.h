@@ -78,6 +78,48 @@ typedef struct
 	//char padding[12];			  /* 500 */
 } tar_header;
 
+typedef struct  {
+	U32 magic;
+	U32 hver;
+	U16 flags;
+	U16 type;
+	U32 meta;
+	U64 hsize;
+	U64 esize;
+}SceHeader;
+
+typedef struct  {
+	U08 key[0x10];
+	U08 key_pad[0x10];
+	U08 iv[0x10];
+	U08 iv_pad[0x10];
+}MetadataInfo;
+
+typedef struct  {
+	U64 signature_input_length;
+	U32 unknown1;
+	U32 section_count;
+	U32 key_count;
+	U32 opt_header_size;
+	U32 unknown2;
+	U32 unknown3;
+}MetadataHeader;
+
+typedef struct  {
+	U64 data_offset;
+	U64 data_size;
+	U32 type;
+	U32 program_idx;
+	U32 hashed;
+	U32 sha1_idx;
+	U32 encrypted;
+	U32 key_idx;
+	U32 iv_idx;
+	U32 compressed;
+}MetadataSectionHeader;
+
+
+
 class PUP
 {
 public:
@@ -86,5 +128,9 @@ public:
 	bool Read(const std::string& filepath);
 	int parseoct(const char *p, size_t n);
 	std::map<std::string, U64> offset_map;
+	void decryptpkg(U08 *pkg);
+	void sce_decrypt_header(U08 *ptr);
+	void sce_decrypt_data(U08 *ptr);
+
 };
 
