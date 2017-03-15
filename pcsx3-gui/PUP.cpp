@@ -169,7 +169,7 @@ void PUP::sce_decrypt_data(U08 *ptr)
 
 		U08 data_key[0x10];
 		U08 data_iv[0x10];
-		if (FromBigEndian(meta_shdr.key_idx) == 0xffffffff || FromBigEndian(meta_shdr.iv_idx) == 0xffffffff)
+		if (FromBigEndian(meta_shdr.key_idx) == 0xffffffff || FromBigEndian(meta_shdr.iv_idx) == 0xffffffff)// first shdr appears to have some kind of info that doesn't seem to be encrpyted (in PUP files)
 			continue;
 		memcpy(data_key, data_keys + FromBigEndian(meta_shdr.key_idx) * 0x10, 0x10);
 		memcpy(data_iv, data_keys + FromBigEndian(meta_shdr.iv_idx) * 0x10, 0x10);
@@ -182,7 +182,7 @@ void PUP::sce_decrypt_data(U08 *ptr)
 		aes_crypt_ctr(&aes, FromBigEndian(meta_shdr.data_size), &ctr_nc_off, data_iv, ctr_stream_block, data_decrypted, data_decrypted);
 		if (FromBigEndian(meta_shdr.compressed) == 2)
 		{
-
+			//arg it compressed???
 		}
 		else
 		{
