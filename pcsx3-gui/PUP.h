@@ -125,12 +125,12 @@ class PUP
 public:
 	PUP();
 	virtual ~PUP();
-	bool Read(const std::string& filepath);
+	bool Read(const std::string& filepath, const std::string& extractPath);
 	int parseoct(const char *p, size_t n);
 	std::map<std::string, U64> offset_map;
 	U08* decryptpkg(U08 *pkg,U32 &filesize);
 	void sce_decrypt_header(U08 *ptr);
 	void sce_decrypt_data(U08 *ptr, U08 *extracted);
-
+	void create_dir(char *pathname, int mode);
 };
 

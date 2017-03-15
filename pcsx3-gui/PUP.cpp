@@ -3,6 +3,9 @@
 #include "fsFile.h"
 #include "aes.h"
 #include "..\pcsx3\ext\zlib\zlib.h"
+#include <direct.h>  
+#include <stdlib.h>  
+#include <stdio.h> 
 
 using namespace std;
 
@@ -14,7 +17,7 @@ PUP::~PUP()
 {
 
 }
-bool PUP::Read(const std::string& filepath)
+bool PUP::Read(const std::string& filepath, const std::string& extractPath)
 {
 	fsFile file;
 	file.Open(filepath, fsRead);
@@ -70,10 +73,31 @@ bool PUP::Read(const std::string& filepath)
 						U32 decryptedfilesize = 0;
 						U08* decrypted =decryptpkg(devf, decryptedfilesize);
 						//test extract the decrypted tar files
-						fsFile tar;
+						/*fsFile tar;
 						tar.Open(it->first, fsWrite);
 						tar.Write(decrypted, decryptedfilesize);
-						tar.Close();
+						tar.Close();*/
+						int off = 0;
+						for (;;)
+						{
+							tar_header& tarh = (tar_header&)decrypted[off];
+							int filesize = parseoct(tarh.size, 12);
+							if (tarh.typeflag == '5')
+							{
+								_mkdir(tarh.name);//create_dir((char*)decrypted, /*parseoct(decrypted + 100, 8)*/0);
+							}
+							if (tarh.typeflag == '0')
+							{
+								int foffset = ((off + sizeof(tar_header) + 512 - 1) & ~(512 - 1));
+								fsFile tar;
+								tar.Open(tarh.name, fsWrite);
+								tar.Write(foffset+decrypted, filesize);
+								tar.Close();
+							}
+							off += ((filesize + sizeof(tar_header) + 512 - 1) & ~(512 - 1));//alligned to 512 bytes
+							if (off > decryptedfilesize)
+								break;
+						}
 
 						delete[] devf;
 						delete[] decrypted;
@@ -103,6 +127,31 @@ int PUP::parseoct(const char *p, size_t n)
 		--n;
 	}
 	return (i);
+}
+void PUP::create_dir(char *pathname, int mode)
+{
+	char *p;
+	int r;
+
+	/* Strip trailing '/' */
+	if (pathname[strlen(pathname) - 1] == '/')
+		pathname[strlen(pathname) - 1] = '\0';
+
+	/* Try creating the directory. */
+	r = _mkdir(pathname/*, mode*/);
+
+	if (r != 0) {
+		/* On failure, try creating parent directory. */
+		p = strrchr(pathname, '/');
+		if (p != NULL) {
+			*p = '\0';
+			create_dir(pathname, 0755);
+			*p = '/';
+			r = _mkdir(pathname/*, mode*/);
+		}
+	}
+	if (r != 0)
+		fprintf(stderr, "Could not create directory %s\n", pathname);
 }
 /*
     decypt pkg from pup . This is a SCE file so it would be generic for self's as well later

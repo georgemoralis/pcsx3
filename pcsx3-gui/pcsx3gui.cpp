@@ -95,8 +95,14 @@ void pcsx3gui::installFW()
 	std::string file(QFileDialog::getOpenFileName(this, tr("Open FW Update Files"), QDir::currentPath(), tr("PUP File (*.PUP)")).toStdString());
 	if (detectFileType(file) == FILETYPE_PUP)
 	{
+		std::string extractpath = QDir::currentPath().toStdString() + "/dev_flash/";
+		QDir dir(QString::fromStdString(extractpath));
+		if (!dir.exists()) {
+			dir.mkpath(".");
+		}
 		PUP pup;
-		pup.Read(file);
+		pup.Read(file,extractpath);
+		QMessageBox::information(this, "Extraction Finished", "FW installation completed", QMessageBox::Ok, 0);
 	}
 	else
 	{
