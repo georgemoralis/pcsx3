@@ -2,6 +2,7 @@
 #include "PUP.h"
 #include "fsFile.h"
 #include "aes.h"
+#include "..\pcsx3\ext\zlib\zlib.h"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ bool PUP::Read(const std::string& filepath)
 			{
 				U64 length = FromBigEndian(fentry.data_length);
 				U64 offset = FromBigEndian(fentry.data_offset);
-				fsFile tar;
+				
 				
 				char *f = new char[length];
 				file.Seek(offset, fsSeekSet);
@@ -65,10 +66,17 @@ bool PUP::Read(const std::string& filepath)
 						U08 *devf = new U08[filesize];
 						memcpy(devf, f + foffset, filesize);
 
-						decryptpkg(devf);
-						//tar.Open(it->first, fsWrite);
-						//tar.Write(f + foffset, filesize);
-						//tar.Close();
+						//decrypt pkg
+						U32 decryptedfilesize = 0;
+						U08* decrypted =decryptpkg(devf, decryptedfilesize);
+						//test extract the decrypted tar files
+						fsFile tar;
+						tar.Open(it->first, fsWrite);
+						tar.Write(decrypted, decryptedfilesize);
+						tar.Close();
+
+						delete[] devf;
+						delete[] decrypted;
 					}
 				}
 				delete[] f;
@@ -99,7 +107,7 @@ int PUP::parseoct(const char *p, size_t n)
 /*
     decypt pkg from pup . This is a SCE file so it would be generic for self's as well later
 */
-void PUP::decryptpkg(U08 *pkg)
+U08* PUP::decryptpkg(U08 *pkg,U32 &filesize)
 {
 	U16 flags;
 	U16 type;
@@ -113,8 +121,10 @@ void PUP::decryptpkg(U08 *pkg)
 	//hdr_len = FromBigEndian((U32&)pkg + 0x10);
 	//dec_size = FromBigEndian((U64&)pkg + 0x18);
 	sce_decrypt_header(pkg);
-	sce_decrypt_data(pkg);
-
+	filesize = FromBigEndian(sce_header.esize)-0x80;
+	U08* extracted = new U08[filesize];
+	sce_decrypt_data(pkg,extracted);
+	return extracted;
 }
 void PUP::sce_decrypt_header(U08 *ptr)
 {
@@ -156,13 +166,15 @@ void PUP::sce_decrypt_header(U08 *ptr)
 	aes_crypt_ctr(&aes, meta_headers_size, &ctr_nc_off, meta_info.iv, ctr_stream_block, meta_headers, meta_headers);
 
 }
-void PUP::sce_decrypt_data(U08 *ptr)
+void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 {
 	const auto& sce_header = (SceHeader&)ptr[0x0];
 	const U32 meta_header_off = sizeof(SceHeader) + FromBigEndian(sce_header.meta) + sizeof(MetadataInfo);
 	const auto& meta_header = (MetadataHeader&)ptr[meta_header_off];
 	const U08* data_keys = (U08*)&ptr[meta_header_off + sizeof(MetadataHeader) + FromBigEndian(meta_header.section_count) * sizeof(MetadataSectionHeader)];
 	aes_context aes;
+	
+	U08* data = new U08[FromBigEndian(sce_header.esize)];
 	for (U32 i = 0; i < FromBigEndian(meta_header.section_count); i++) {
 		const auto& meta_shdr = (MetadataSectionHeader&)ptr[meta_header_off + sizeof(MetadataHeader) + i * sizeof(MetadataSectionHeader)];
 		U08* data_decrypted = new U08[FromBigEndian(meta_shdr.data_size)];
@@ -171,24 +183,27 @@ void PUP::sce_decrypt_data(U08 *ptr)
 		U08 data_iv[0x10];
 		if (FromBigEndian(meta_shdr.key_idx) == 0xffffffff || FromBigEndian(meta_shdr.iv_idx) == 0xffffffff)// first shdr appears to have some kind of info that doesn't seem to be encrpyted (in PUP files)
 			continue;
-		memcpy(data_key, data_keys + FromBigEndian(meta_shdr.key_idx) * 0x10, 0x10);
-		memcpy(data_iv, data_keys + FromBigEndian(meta_shdr.iv_idx) * 0x10, 0x10);
-		memcpy(data_decrypted, &ptr[FromBigEndian(meta_shdr.data_offset)], FromBigEndian(meta_shdr.data_size));
+		if (FromBigEndian(meta_shdr.encrypted) == 3)
+		{
+			memcpy(data_key, data_keys + FromBigEndian(meta_shdr.key_idx) * 0x10, 0x10);
+			memcpy(data_iv, data_keys + FromBigEndian(meta_shdr.iv_idx) * 0x10, 0x10);
+			memcpy(data_decrypted, &ptr[FromBigEndian(meta_shdr.data_offset)], FromBigEndian(meta_shdr.data_size));
 
-		// Perform AES-CTR encryption on the data
-		U08 ctr_stream_block[0x10] = {};
-		U64 ctr_nc_off = 0;
-		aes_setkey_enc(&aes, data_key, 128);
-		aes_crypt_ctr(&aes, FromBigEndian(meta_shdr.data_size), &ctr_nc_off, data_iv, ctr_stream_block, data_decrypted, data_decrypted);
+			// Perform AES-CTR encryption on the data
+			U08 ctr_stream_block[0x10] = {};
+			U64 ctr_nc_off = 0;
+			aes_setkey_enc(&aes, data_key, 128);
+			aes_crypt_ctr(&aes, FromBigEndian(meta_shdr.data_size), &ctr_nc_off, data_iv, ctr_stream_block, data_decrypted, data_decrypted);
+		}
 		if (FromBigEndian(meta_shdr.compressed) == 2)
 		{
-			//arg it compressed???
+			unsigned long length = FromBigEndian(sce_header.esize) - 0x80;
+			uncompress(data, &length, data_decrypted, (U32)FromBigEndian(meta_shdr.data_size));
+			memcpy(extracted, data, length);
 		}
-		else
-		{
-			memcpy(ptr + FromBigEndian(sce_header.meta) + 0x80 + 0x30 * i, data_decrypted, FromBigEndian(meta_shdr.data_size));//not sure
-		}
+		
 		delete[] data_decrypted;
+		delete[] data;
 	}
 
 }

@@ -128,9 +128,9 @@ public:
 	bool Read(const std::string& filepath);
 	int parseoct(const char *p, size_t n);
 	std::map<std::string, U64> offset_map;
-	void decryptpkg(U08 *pkg);
+	U08* decryptpkg(U08 *pkg,U32 &filesize);
 	void sce_decrypt_header(U08 *ptr);
-	void sce_decrypt_data(U08 *ptr);
+	void sce_decrypt_data(U08 *ptr, U08 *extracted);
 
 };
 
