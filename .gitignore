@@ -6,3 +6,5 @@ pcsx3-gui/x64/*
 x64/Debug/*
 bin/*
 x64/*
+libs/*
+pcsx3/ext/zlib/x64/*
