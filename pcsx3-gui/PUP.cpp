@@ -6,6 +6,7 @@
 #include <direct.h>  
 #include <stdlib.h>  
 #include <stdio.h> 
+#include "../pcsx3-gui/pcsx3gui.h"
 
 using namespace std;
 
@@ -30,6 +31,7 @@ bool PUP::Read(const std::string& filepath, const std::string& extractPath)
 	}
 	else
 	{
+		printPUPHeader(pupheader);
 		U64 filenumber = FromBigEndian(pupheader.file_count);
 		for (int i = 0; i < pupheader.file_count; i++)
 		{
@@ -255,4 +257,14 @@ void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 		delete[] data;
 	}
 
+}
+//debug info
+void PUP::printPUPHeader(PUPHeader puph)
+{
+	infof(PUP,"magic : 0x%x",FromBigEndian(puph.magic)>>32);
+	infof(PUP, "package_version : 0x%x", FromBigEndian(puph.package_version));
+	infof(PUP, "image_version : 0x%x", FromBigEndian(puph.image_version));
+	infof(PUP, "file_count : 0x%x", FromBigEndian(puph.file_count));
+	infof(PUP, "header_length : 0x%x", FromBigEndian(puph.header_length));
+	infof(PUP, "data_length : 0x%x", FromBigEndian(puph.data_length));
 }

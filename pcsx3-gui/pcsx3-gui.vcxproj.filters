@@ -127,5 +127,8 @@
     <ClInclude Include="loader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\pcsx3\src\emu.log.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -124,6 +124,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\pcsx3\src\emu.log.h" />
     <ClInclude Include="aes.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="fsFile.h" />

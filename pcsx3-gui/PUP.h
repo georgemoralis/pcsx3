@@ -132,5 +132,8 @@ public:
 	void sce_decrypt_header(U08 *ptr);
 	void sce_decrypt_data(U08 *ptr, U08 *extracted);
 	void create_dir(char *pathname, int mode);
+
+	//debug info
+	void printPUPHeader(PUPHeader puph);
 };
 
