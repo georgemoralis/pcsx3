@@ -31,7 +31,7 @@ bool PUP::Read(const std::string& filepath, const std::string& extractPath)
 	}
 	else
 	{
-		printPUPHeader(pupheader);
+		//printPUPHeader(pupheader);
 		U64 filenumber = FromBigEndian(pupheader.file_count);
 		for (int i = 0; i < pupheader.file_count; i++)
 		{
@@ -42,8 +42,7 @@ bool PUP::Read(const std::string& filepath, const std::string& extractPath)
 			{
 				U64 length = FromBigEndian(fentry.data_length);
 				U64 offset = FromBigEndian(fentry.data_offset);
-				
-				
+	
 				char *f = new char[length];
 				file.Seek(offset, fsSeekSet);
 				file.Read(f, length);
@@ -74,11 +73,6 @@ bool PUP::Read(const std::string& filepath, const std::string& extractPath)
 						//decrypt pkg
 						U32 decryptedfilesize = 0;
 						U08* decrypted =decryptpkg(devf, decryptedfilesize);
-						//test extract the decrypted tar files
-						/*fsFile tar;
-						tar.Open(it->first, fsWrite);
-						tar.Write(decrypted, decryptedfilesize);
-						tar.Close();*/
 						int off = 0;
 						for (;;)
 						{
@@ -129,31 +123,6 @@ int PUP::parseoct(const char *p, size_t n)
 		--n;
 	}
 	return (i);
-}
-void PUP::create_dir(char *pathname, int mode)
-{
-	char *p;
-	int r;
-
-	/* Strip trailing '/' */
-	if (pathname[strlen(pathname) - 1] == '/')
-		pathname[strlen(pathname) - 1] = '\0';
-
-	/* Try creating the directory. */
-	r = _mkdir(pathname/*, mode*/);
-
-	if (r != 0) {
-		/* On failure, try creating parent directory. */
-		p = strrchr(pathname, '/');
-		if (p != NULL) {
-			*p = '\0';
-			create_dir(pathname, 0755);
-			*p = '/';
-			r = _mkdir(pathname/*, mode*/);
-		}
-	}
-	if (r != 0)
-		fprintf(stderr, "Could not create directory %s\n", pathname);
 }
 /*
     decypt pkg from pup . This is a SCE file so it would be generic for self's as well later
@@ -261,7 +230,7 @@ void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 //debug info
 void PUP::printPUPHeader(PUPHeader puph)
 {
-	infof(PUP,"magic : 0x%x",FromBigEndian(puph.magic)>>32);
+	infof(PUP, "magic : 0x%x",FromBigEndian(puph.magic)>>32);
 	infof(PUP, "package_version : 0x%x", FromBigEndian(puph.package_version));
 	infof(PUP, "image_version : 0x%x", FromBigEndian(puph.image_version));
 	infof(PUP, "file_count : 0x%x", FromBigEndian(puph.file_count));
