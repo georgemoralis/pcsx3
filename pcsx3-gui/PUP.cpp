@@ -31,15 +31,17 @@ bool PUP::Read(const std::string& filepath, const std::string& extractPath)
 	}
 	else
 	{
-		//printPUPHeader(pupheader);
+		printPUPHeader(pupheader);
+		
 		U64 filenumber = FromBigEndian(pupheader.file_count);
-		for (int i = 0; i < pupheader.file_count; i++)
+		for (int i = 0; i < FromBigEndian(pupheader.file_count); i++)
 		{
 			file.Seek(0x30 + (0x20 * i), fsSeekSet);
 			PUPFileEntry fentry;
 			file.Read(&fentry, sizeof(fentry));
 			if (FromBigEndian(fentry.entry_id) == 0x300)
 			{
+				printPUPFileEntries(pupheader, fentry);
 				U64 length = FromBigEndian(fentry.data_length);
 				U64 offset = FromBigEndian(fentry.data_offset);
 	
@@ -100,7 +102,10 @@ bool PUP::Read(const std::string& filepath, const std::string& extractPath)
 					}
 				}
 				delete[] f;
-				break;
+			}
+			else //just print entry info
+			{
+				printPUPFileEntries(pupheader, fentry);
 			}
 		}
 		file.Close();
@@ -227,13 +232,21 @@ void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 	}
 
 }
+
 //debug info
 void PUP::printPUPHeader(PUPHeader puph)
 {
-	infof(PUP, "magic : 0x%x",FromBigEndian(puph.magic)>>32);
-	infof(PUP, "package_version : 0x%x", FromBigEndian(puph.package_version));
-	infof(PUP, "image_version : 0x%x", FromBigEndian(puph.image_version));
-	infof(PUP, "file_count : 0x%x", FromBigEndian(puph.file_count));
-	infof(PUP, "header_length : 0x%x", FromBigEndian(puph.header_length));
-	infof(PUP, "data_length : 0x%x", FromBigEndian(puph.data_length));
+	infof(PUP, "%-30s 0x%x","magic : ",FromBigEndian(puph.magic)>>32);
+	infof(PUP, "%-30s 0x%x","package_version : ",FromBigEndian(puph.package_version));
+	infof(PUP, "%-30s 0x%x","image_version : ", FromBigEndian(puph.image_version));
+	infof(PUP, "%-30s 0x%x","file_count : ", FromBigEndian(puph.file_count));
+	infof(PUP, "%-30s 0x%x","header_length : ", FromBigEndian(puph.header_length));
+	infof(PUP, "%-30s 0x%x","data_length : ", FromBigEndian(puph.data_length));
+}
+void PUP::printPUPFileEntries(PUPHeader puph, PUPFileEntry fentry)
+{
+	infof(PUP, "%-30s %s", "entry_name : ", id2name(FromBigEndian(fentry.entry_id), entries,NULL));
+	infof(PUP, "%-30s 0x%x", "entry_id : ", FromBigEndian(fentry.entry_id));
+	infof(PUP, "%-30s 0x%x", "data_offset : ", FromBigEndian(fentry.data_offset));
+	infof(PUP, "%-30s 0x%x", "data_length : ", FromBigEndian(fentry.data_length));
 }

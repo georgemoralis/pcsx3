@@ -1,6 +1,8 @@
 #pragma once
 #include "common.h"
 #include <map>
+#include "fsFile.h"
+
 //Header
 typedef struct {
 	U64 magic;
@@ -34,14 +36,14 @@ typedef struct
 } PUPFooter;
 
 //Entry Id 
-typedef struct {
+struct PUPEntryID {
 	U64 id;
 	const char *filename;
-} PUPEntryID;
+};
 
 
 //PUPEntryID entries 
-static const PUPEntryID entries[] = {
+static struct PUPEntryID entries[] = {
 	{ 0x100, "version.txt" },
 	{ 0x101, "license.xml" },
 	{ 0x102, "promo_flags.txt" },
@@ -54,8 +56,9 @@ static const PUPEntryID entries[] = {
 	{ 0x300, "update_files.tar" },
 	{ 0x501, "spkg_hdr.tar" },
 	{ 0x601, "ps3swu2.self" },
-	{ 0, "" }
+	{ 0, NULL }
 };
+
 
 typedef struct 
 {                              /* byte offset */
@@ -134,5 +137,16 @@ public:
 
 	//debug info
 	void printPUPHeader(PUPHeader puph);
+	void printPUPFileEntries(PUPHeader puph, PUPFileEntry fentry);
+
+	const char *id2name(U64 id, struct PUPEntryID *t, const char *unk)
+	{
+		while (t->filename != NULL) {
+			if (id == t->id)
+				return t->filename;
+			t++;
+		}
+		return unk;
+	}
 };
 
