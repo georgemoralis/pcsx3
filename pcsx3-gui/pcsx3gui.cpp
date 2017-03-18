@@ -22,7 +22,7 @@ pcsx3gui::pcsx3gui(QWidget *parent)
 void pcsx3gui::installPKG()
 {
 	std::string file(QFileDialog::getOpenFileName(this, tr("Install PKG File"), QDir::currentPath(), tr("PKG File (*.PKG)")).toStdString());
-	if (detectFileType(file) == FILETYPE_PUP)
+	if (detectFileType(file) == FILETYPE_PKG)
 	{
 		PKG pkg;
 		pkg.open(file);
