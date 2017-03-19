@@ -7,7 +7,7 @@
 #include <stdlib.h>  
 #include <stdio.h> 
 #include "../pcsx3-gui/pcsx3gui.h"
-
+#include "../pcsx3/src/crypto.keyvault.h"
 using namespace std;
 
 PUP::PUP()
@@ -141,12 +141,12 @@ U08* PUP::decryptpkg(U08 *pkg,U32 &filesize)
 	struct keylist *k;
 	const auto& sce_header = (SceHeader&)pkg[0x0];
 
-	flags = FromBigEndian(sce_header.flags);
-	type = FromBigEndian(sce_header.type);
+	flags = FromBigEndian(sce_header.key_revision);
+	type = FromBigEndian(sce_header.header_type);
 	//hdr_len = FromBigEndian((U32&)pkg + 0x10);
 	//dec_size = FromBigEndian((U64&)pkg + 0x18);
 	sce_decrypt_header(pkg);
-	filesize = FromBigEndian(sce_header.esize)-0x80;
+	filesize = FromBigEndian(sce_header.data_length)-0x80;
 	U08* extracted = new U08[filesize];
 	sce_decrypt_data(pkg,extracted);
 	return extracted;
@@ -160,32 +160,44 @@ void PUP::sce_decrypt_header(U08 *ptr)
 	U08 tmp[0x40];
 	int success = 0;
 
-	U08 SCEPKG_RIV[0x10] = {
-		0x4A, 0xCE, 0xF0, 0x12, 0x24, 0xFB, 0xEE, 0xDF, 0x82, 0x45, 0xF8, 0xFF, 0x10, 0x21, 0x1E, 0x6E
-	};
-
-	U08 SCEPKG_ERK[0x20] = {
-		0xA9, 0x78, 0x18, 0xBD, 0x19, 0x3A, 0x67, 0xA1, 0x6F, 0xE8, 0x3A, 0x85, 0x5E, 0x1B, 0xE9, 0xFB, 0x56, 0x40, 0x93, 0x8D,
-		0x4D, 0xBC, 0xB2, 0xCB, 0x52, 0xC5, 0xA2, 0xF8, 0xB0, 0x2B, 0x10, 0x31
-	};
-
 	const auto& sce_header = (SceHeader&)ptr[0x0];
-	meta_offset = FromBigEndian(sce_header.meta);
-	header_len = FromBigEndian(sce_header.hsize);
+	const auto& app_info = (AppInfo&)ptr[0x70];
+
+	U16 htype = FromBigEndian(sce_header.header_type);
+	const SelfKey* key = nullptr;
+	if (htype == 3)//pkg found in PUP
+	{
+		//doesn't appear to have app_info
+		key = getSelfKey(KEY_PKG, 0, 0);
+
+	}
+	else //probably we have app_info
+	{
+		//keyvault
+		U32 self_type = FromBigEndian(app_info.self_type);
+		U64 version = FromBigEndian(app_info.version);
+		U16 key_revision = FromBigEndian(sce_header.key_revision);
+		key = getSelfKey(self_type, version, key_revision);
+	}
+	
+
+
+	meta_offset = FromBigEndian(sce_header.metadata_offset);
+	header_len = FromBigEndian(sce_header.header_length);
 
 	aes_context aes;
 	// Decrypt Metadata Info
 	U08 metadata_iv[0x10];
-	memcpy(metadata_iv, SCEPKG_RIV, 0x10);
-	aes_setkey_dec(&aes, SCEPKG_ERK, 256);
-	auto& meta_info = (MetadataInfo&)ptr[sizeof(SceHeader) + FromBigEndian(sce_header.meta)];
+	memcpy(metadata_iv, key->riv, 0x10);
+	aes_setkey_dec(&aes, key->erk, 256);
+	auto& meta_info = (MetadataInfo&)ptr[sizeof(SceHeader) + FromBigEndian(sce_header.metadata_offset)];
 
 	aes_crypt_cbc(&aes, AES_DECRYPT, sizeof(MetadataInfo), metadata_iv, (U08*)&meta_info, (U08*)&meta_info);
 
 	// Decrypt Metadata Headers (Metadata Header + Metadata Section Headers)
 	U08 ctr_stream_block[0x10];
-	U08* meta_headers = (U08*)&ptr[sizeof(SceHeader) + FromBigEndian(sce_header.meta) + sizeof(MetadataInfo)];
-	U32 meta_headers_size = FromBigEndian(sce_header.hsize) - (sizeof(SceHeader) + FromBigEndian(sce_header.meta) + sizeof(MetadataInfo));
+	U08* meta_headers = (U08*)&ptr[sizeof(SceHeader) + FromBigEndian(sce_header.metadata_offset) + sizeof(MetadataInfo)];
+	U32 meta_headers_size = FromBigEndian(sce_header.header_length) - (sizeof(SceHeader) + FromBigEndian(sce_header.metadata_offset) + sizeof(MetadataInfo));
 	U64 ctr_nc_off = 0;
 	aes_setkey_enc(&aes, meta_info.key, 128);
 	aes_crypt_ctr(&aes, meta_headers_size, &ctr_nc_off, meta_info.iv, ctr_stream_block, meta_headers, meta_headers);
@@ -194,12 +206,12 @@ void PUP::sce_decrypt_header(U08 *ptr)
 void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 {
 	const auto& sce_header = (SceHeader&)ptr[0x0];
-	const U32 meta_header_off = sizeof(SceHeader) + FromBigEndian(sce_header.meta) + sizeof(MetadataInfo);
+	const U32 meta_header_off = sizeof(SceHeader) + FromBigEndian(sce_header.metadata_offset) + sizeof(MetadataInfo);
 	const auto& meta_header = (MetadataHeader&)ptr[meta_header_off];
 	const U08* data_keys = (U08*)&ptr[meta_header_off + sizeof(MetadataHeader) + FromBigEndian(meta_header.section_count) * sizeof(MetadataSectionHeader)];
 	aes_context aes;
 	
-	U08* data = new U08[FromBigEndian(sce_header.esize)];
+	U08* data = new U08[FromBigEndian(sce_header.data_length)];
 	for (U32 i = 0; i < FromBigEndian(meta_header.section_count); i++) {
 		const auto& meta_shdr = (MetadataSectionHeader&)ptr[meta_header_off + sizeof(MetadataHeader) + i * sizeof(MetadataSectionHeader)];
 		U08* data_decrypted = new U08[FromBigEndian(meta_shdr.data_size)];
@@ -222,7 +234,7 @@ void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 		}
 		if (FromBigEndian(meta_shdr.compressed) == 2)
 		{
-			unsigned long length = FromBigEndian(sce_header.esize) - 0x80;
+			unsigned long length = FromBigEndian(sce_header.data_length) - 0x80;
 			uncompress(data, &length, data_decrypted, (U32)FromBigEndian(meta_shdr.data_size));
 			memcpy(extracted, data, length);
 		}

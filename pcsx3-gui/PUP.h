@@ -83,12 +83,12 @@ typedef struct
 
 typedef struct  {
 	U32 magic;
-	U32 hver;
-	U16 flags;
-	U16 type;
-	U32 meta;
-	U64 hsize;
-	U64 esize;
+	U32 hdr_version;
+	U16 key_revision;
+	U16 header_type;
+	U32 metadata_offset;
+	U64 header_length;
+	U64 data_length;
 }SceHeader;
 
 typedef struct  {
@@ -121,7 +121,14 @@ typedef struct  {
 	U32 compressed;
 }MetadataSectionHeader;
 
-
+typedef struct
+{
+	U64 authid;
+	U32 vendor_id;
+	U32 self_type;
+	U64 version;
+	U64 padding;
+}AppInfo;
 
 class PUP
 {
