@@ -47,10 +47,13 @@ struct PKGFooter
 class PKG
 {
 private:
-	std::vector<U08> pkg;
+	U08* pkg;
 	U64 pkgSize = 0;
 	S08 pkgSHA1[20];
 	S08 pkgTitleID[9];
+	std::string extractPath;
+	U64 offset;
+	U32 n_files;
 public:
 	PKG();
 	~PKG();
@@ -59,5 +62,8 @@ public:
 	S08*  getPkgSHA1();
 	std::string getTitleID();
 	bool extract(const std::string& filepath, const std::string& extractPath,std::string& failreason);
+	void extractfiles(const int& i);
+	U32 getNumberOfFiles();
+	void clearBuffer();
 };
 

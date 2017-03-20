@@ -1,6 +1,8 @@
 #include <QDir>
 #include <QFileDialog>
+#include <QtConcurrent>
 #include <QProgressDialog>
+#include <qtconcurrentmap.h>
 #include <QMessageBox>
 #include "pcsx3gui.h"
 #include "pkg.h"
@@ -8,6 +10,7 @@
 #include "fsFile.h"
 #include "loader.h"
 #include "PUP.h"
+#include <functional>
 
 pcsx3gui::pcsx3gui(QWidget *parent)
 	: QMainWindow(parent)
@@ -66,6 +69,8 @@ void pcsx3gui::installPKG()
 		}
 		else
 		{
+			
+
 			//if pkg is ok we procced with extraction
 			std::string failreason;
 			QString gamedir = QDir::currentPath() + "/dev_hdd0/game/" + QString::fromStdString(pkg.getTitleID());
@@ -80,6 +85,30 @@ void pcsx3gui::installPKG()
 			}
 			else
 			{
+				int nfiles = pkg.getNumberOfFiles();
+				QVector<int> vector;
+				for (int i = 0; i < nfiles; ++i)
+					vector.append(i);
+
+				// Create a progress dialog.
+				QProgressDialog dialog;
+				dialog.setLabelText("Extracting PKG please wait");
+
+				// Create a QFutureWatcher and connect signals and slots.
+				QFutureWatcher<void> futureWatcher;
+				QObject::connect(&futureWatcher, SIGNAL(finished()), &dialog, SLOT(reset()));
+				QObject::connect(&dialog, SIGNAL(canceled()), &futureWatcher, SLOT(cancel()));
+				QObject::connect(&futureWatcher, SIGNAL(progressRangeChanged(int, int)), &dialog, SLOT(setRange(int, int)));
+				QObject::connect(&futureWatcher, SIGNAL(progressValueChanged(int)), &dialog, SLOT(setValue(int)));
+
+				// Start the computation.
+				futureWatcher.setFuture(QtConcurrent::map(vector, std::bind(&PKG::extractfiles, pkg, std::placeholders::_1)));
+
+				// Display the dialog and start the event loop.
+				dialog.exec();
+
+				futureWatcher.waitForFinished();
+				pkg.clearBuffer();
 				QMessageBox::information(this, "Extraction Finished", "Game successfully installed at " + gamedir, QMessageBox::Ok, 0);
 				game_list->RefreshGameDirectory();//force refreshing since filelistwatcher doesn't work properly
 			}
@@ -106,6 +135,6 @@ void pcsx3gui::installFW()
 	}
 	else
 	{
-		QMessageBox::critical(this, "PKG ERROR", "File doesn't appear to be a valid PUP file", QMessageBox::Ok, 0);
+		QMessageBox::critical(this, "PUP ERROR", "File doesn't appear to be a valid PUP file", QMessageBox::Ok, 0);
 	}
 }

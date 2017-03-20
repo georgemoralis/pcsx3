@@ -52,6 +52,7 @@ std::string PKG::getTitleID()
 }
 bool PKG::extract(const std::string& filepath, const std::string& extractPath, std::string& failreason)
 {
+	this->extractPath = extractPath;
 	fsFile file;
 	if (!file.Open(filepath, fsRead))
 	{
@@ -82,10 +83,10 @@ bool PKG::extract(const std::string& filepath, const std::string& extractPath, s
 	}
 	//test code it will rewrite from here
 	file.Seek(0, fsSeekSet);
-	U08* pkg = new U08[pkgSize];
+	pkg = new U08[pkgSize];
 	
 	file.Read(pkg, pkgSize);
-	U64 offset = FromBigEndian(pkgheader.data_offset);
+	offset = FromBigEndian(pkgheader.data_offset);
 	U64 size = FromBigEndian(pkgheader.data_size);
 	U08 iv[0x10];
 	memcpy(iv, pkg + 0x70, 0x10);
@@ -102,33 +103,43 @@ bool PKG::extract(const std::string& filepath, const std::string& extractPath, s
 	aes_crypt_ctr(&aes, size, &ctr_nc_off, iv, ctr_stream_block, pkg+offset, pkg+offset);
 	
 	char fname[256];
-	U32 n_files = FromBigEndian(pkgheader.item_count);
-	for (int i = 0; i < n_files; i++) {
-		PKGEntry entry = (PKGEntry&)pkg[offset + i * 0x20];
-		U32 fname_len = FromBigEndian(entry.name_size);
-		U32 fname_off = FromBigEndian(entry.name_offset);
-		U32 flags = FromBigEndian(entry.type);
-		U64 file_offset = FromBigEndian(entry.data_offset);
-		U64 file_size = FromBigEndian(entry.data_size);
+	n_files = FromBigEndian(pkgheader.item_count);
 
-
-		memset(fname, 0, sizeof(fname));
-		strncpy(fname, (char *)(pkg +offset + fname_off), fname_len);
-		
-		flags &= 0xff;
-		if (flags == 4)
-		{
-			std::string path = extractPath + std::string(fname);
-			_mkdir(path.c_str());//nasty but we will redo this
-		}
-		else
-		{
-			fsFile out;
-			out.Open(extractPath + fname, fsWrite);
-			out.Write(pkg + offset + file_offset, file_size);
-			out.Close();
-		}
-	}
-	delete[] pkg;
 	return true;
+}
+U32 PKG::getNumberOfFiles()
+{
+	return n_files;
+}
+void PKG::clearBuffer()
+{
+	delete[] pkg;
+}
+void PKG::extractfiles(const int& i)
+{
+	char fname[256];
+	PKGEntry entry = (PKGEntry&)pkg[offset + i * 0x20];
+	U32 fname_len = FromBigEndian(entry.name_size);
+	U32 fname_off = FromBigEndian(entry.name_offset);
+	U32 flags = FromBigEndian(entry.type);
+	U64 file_offset = FromBigEndian(entry.data_offset);
+	U64 file_size = FromBigEndian(entry.data_size);
+
+
+	memset(fname, 0, sizeof(fname));
+	strncpy(fname, (char *)(pkg + offset + fname_off), fname_len);
+
+	flags &= 0xff;
+	if (flags == 4)
+	{
+		std::string path = extractPath + std::string(fname);
+		_mkdir(path.c_str());//nasty but we will redo this
+	}
+	else
+	{
+		fsFile out;
+		out.Open(extractPath + fname, fsWrite);
+		out.Write(pkg + offset + file_offset, file_size);
+		out.Close();
+	}
 }
