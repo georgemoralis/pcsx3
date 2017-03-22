@@ -54,5 +54,9 @@ public:
 
 		return SEEK_SET;
 	}
+	std::FILE* fileDescr()
+	{
+		return m_file;
+	}
 };
 

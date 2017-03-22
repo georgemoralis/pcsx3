@@ -68,12 +68,11 @@ public:
 	U32 getNumberOfFiles();
 	void clearBuffer();
 
-	void *mmap(size_t sLength) {
+	void *mmap(size_t sLength, std::FILE* nFd) {
 		HANDLE hHandle;
 		void *pStart;
-
 		hHandle = CreateFileMapping(
-			INVALID_HANDLE_VALUE,    // use paging file
+			(HANDLE)_get_osfhandle(_fileno((nFd))),
 			NULL,                    // default security
 			PAGE_WRITECOPY,          // read/write access
 			0,                       // maximum object size (high-order DWORD)

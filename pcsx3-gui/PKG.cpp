@@ -83,7 +83,7 @@ bool PKG::extract(const std::string& filepath, const std::string& extractPath, s
 	}
 	//test code it will rewrite from here
 	file.Seek(0, fsSeekSet);
-	pkg = new U08[pkgSize];
+	pkg = (U08 *)mmap(pkgSize,file.fileDescr());
 	
 	file.Read(pkg, pkgSize);
 	offset = FromBigEndian(pkgheader.data_offset);
@@ -113,7 +113,7 @@ U32 PKG::getNumberOfFiles()
 }
 void PKG::clearBuffer()
 {
-	delete[] pkg;
+	munmap(pkg);
 }
 void PKG::extractfiles(const int& i)
 {
