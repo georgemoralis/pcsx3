@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include "types.h"
+#include <io.h>
+#include <windows.h>
 
 enum PKGRevision : U16 {
 	PKG_REVISION_DEBUG = 0x0000,
@@ -65,5 +67,29 @@ public:
 	void extractfiles(const int& i);
 	U32 getNumberOfFiles();
 	void clearBuffer();
+
+	void *mmap(size_t sLength) {
+		HANDLE hHandle;
+		void *pStart;
+
+		hHandle = CreateFileMapping(
+			INVALID_HANDLE_VALUE,    // use paging file
+			NULL,                    // default security
+			PAGE_WRITECOPY,          // read/write access
+			0,                       // maximum object size (high-order DWORD)
+			0,                // maximum object size (low-order DWORD)
+			NULL);                 // name of mapping object
+
+		if (hHandle != NULL) {
+			pStart = MapViewOfFile(hHandle, FILE_MAP_COPY, 0, 0, sLength);
+		}
+		return pStart;
+	}
+	int munmap(void *pStart) {
+		if (UnmapViewOfFile(pStart) != 0)
+			return FALSE;
+
+		return TRUE;
+	}
 };
 
