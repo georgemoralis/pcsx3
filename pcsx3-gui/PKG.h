@@ -64,9 +64,7 @@ public:
 	S08*  getPkgSHA1();
 	std::string getTitleID();
 	bool extract(const std::string& filepath, const std::string& extractPath,std::string& failreason);
-	void extractfiles(const int& i);
 	U32 getNumberOfFiles();
-	void clearBuffer();
 
 	void *mmap(size_t sLength, std::FILE* nFd) {
 		HANDLE hHandle;
