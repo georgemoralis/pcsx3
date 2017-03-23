@@ -30,6 +30,7 @@
 
 #ifdef _MSC_VER
 #include <basetsd.h>
+#include <intrin.h>
 typedef UINT32 uint32_t;
 #else
 #include <inttypes.h>
@@ -49,6 +50,7 @@ typedef UINT32 uint32_t;
  */
 typedef struct
 {
+	alignas(16) __m128i roundkey[15]; // AES-NI round keys
     int nr;                     /*!<  number of rounds  */
     uint32_t *rk;               /*!<  AES round keys    */
     uint32_t buf[68];           /*!<  unaligned data    */
