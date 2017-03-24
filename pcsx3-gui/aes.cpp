@@ -861,7 +861,7 @@ void AESNI_encrypt(const unsigned char *in, //pointer to the PLAINTEXT
 	const unsigned char *key, //pointer to the expanded key schedule
 	int number_of_rounds) //number of AES rounds 10,12 or 14
 {
-	__m128i tmp;
+	/*__m128i tmp;
 	int j;
 	tmp = _mm_loadu_si128(&((__m128i*)in)[0]);
 	tmp = _mm_xor_si128(tmp, ((__m128i*)key)[0]);
@@ -869,7 +869,42 @@ void AESNI_encrypt(const unsigned char *in, //pointer to the PLAINTEXT
 		tmp = _mm_aesenc_si128(tmp, ((__m128i*)key)[j]);
 	}
 	tmp = _mm_aesenclast_si128(tmp, ((__m128i*)key)[j]);
-	_mm_storeu_si128(&(((__m128i*)out)[0]), tmp);
+	_mm_storeu_si128(&(((__m128i*)out)[0]), tmp);*/
+	//in package of three
+	__m128i tmp1, tmp2, tmp3;
+	__m128i *Key_Schedule = (__m128i*)key;
+	int i, j;
+
+
+
+	tmp1 = _mm_loadu_si128(&((__m128i*)in)[0]);
+	tmp2 = _mm_loadu_si128(&((__m128i*)in)[1]);
+	tmp3 = _mm_loadu_si128(&((__m128i*)in)[2]);
+
+
+
+	tmp1 = _mm_xor_si128(tmp1, Key_Schedule[0]);
+	tmp2 = _mm_xor_si128(tmp2, Key_Schedule[0]);
+	tmp3 = _mm_xor_si128(tmp3, Key_Schedule[0]);
+
+
+	for (j = 1; j < number_of_rounds; j++) {
+		tmp1 = _mm_aesenc_si128(tmp1, Key_Schedule[j]);
+		tmp2 = _mm_aesenc_si128(tmp2, Key_Schedule[j]);
+		tmp3 = _mm_aesenc_si128(tmp3, Key_Schedule[j]);
+
+
+	}
+
+	tmp1 = _mm_aesenclast_si128(tmp1, Key_Schedule[j]);
+	tmp2 = _mm_aesenclast_si128(tmp2, Key_Schedule[j]);
+	tmp3 = _mm_aesenclast_si128(tmp3, Key_Schedule[j]);
+
+
+	_mm_storeu_si128(&((__m128i*)out)[0], tmp1);
+	_mm_storeu_si128(&((__m128i*)out)[1], tmp2);
+	_mm_storeu_si128(&((__m128i*)out)[2], tmp3);
+
 }
 
 void AESNI_decrypt(const unsigned char *in, //pointer to the PLAINTEXT
@@ -886,6 +921,7 @@ void AESNI_decrypt(const unsigned char *in, //pointer to the PLAINTEXT
 	}
 	tmp = _mm_aesdeclast_si128(tmp, ((__m128i*)key)[j]);
 	_mm_storeu_si128(&((__m128i*)out)[0], tmp);
+
 }
 
 /*
@@ -1103,11 +1139,6 @@ int aes_crypt_ctr( aes_context *ctx,
                        const unsigned char *input,
                        unsigned char *output )
 {
-	/*if (AESNI())
-	{
-		AES_ECB_encrypt(input, output, length, (unsigned char*)ctx->roundkey, ctx->nr);
-		return 0;
-	}*/
     int c, i;
     size_t n = *nc_off;
 
@@ -1315,4 +1346,136 @@ void aes_cmac(aes_context *ctx, int length, unsigned char *input, unsigned char 
 
     for (i = 0; i < 16; i++)
 		output[i] = X[i];
+}
+void AES_CTR_encrypt(aes_context *ctx, const unsigned char *in,
+	unsigned char *out,
+	const unsigned char *ivec,
+	const unsigned char nonce[4],
+	unsigned long length)
+{
+	/*__m128i ctr_block = { 0 }, tmp, ONE, BSWAP_EPI64;
+	unsigned long i;
+	int j;
+	if (length % 16)
+		length = length / 16 + 1;
+	else length /= 16;
+	ONE = _mm_set_epi32(0, 1, 0, 0);
+	BSWAP_EPI64 = _mm_setr_epi8(7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8);
+#ifdef _MSC_VER
+	ctr_block = _mm_insert_epi64(ctr_block, *(long long*)ivec, 1);
+#else
+	ctr_block = _mm_set_epi64(*(__m64*)ivec, *(__m64*)&ctr_block);
+#endif
+	ctr_block = _mm_insert_epi32(ctr_block, *(long*)nonce, 1);
+	ctr_block = _mm_srli_si128(ctr_block, 4);
+	ctr_block = _mm_shuffle_epi8(ctr_block, BSWAP_EPI64);
+	ctr_block = _mm_add_epi64(ctr_block, ONE);
+	for (i = 0; i < length; i++)
+	{
+		tmp = _mm_shuffle_epi8(ctr_block, BSWAP_EPI64);
+		ctr_block = _mm_add_epi64(ctr_block, ONE);
+		tmp = _mm_xor_si128(tmp, ((__m128i*)ctx->roundkey)[0]);
+		for (j = 1; j <ctx->nr; j++)
+		{
+			tmp = _mm_aesenc_si128(tmp, ((__m128i*)ctx->roundkey)[j]);
+		};
+		tmp = _mm_aesenclast_si128(tmp, ((__m128i*)ctx->roundkey)[j]);
+		tmp = _mm_xor_si128(tmp, _mm_loadu_si128(&((__m128i*)in)[i]));
+		_mm_storeu_si128(&((__m128i*)out)[i], tmp);
+	}*/
+	__m128i or_mask, TWO, ctr_block, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, ONE;
+	int i, j, remainder_loc;
+	int has_semi = length % 16;
+	length /= 16;
+	ONE = _mm_setr_epi32(1, 0, 0, 0);
+	TWO = _mm_setr_epi32(2, 0, 0, 0);
+	ctr_block = _mm_setzero_si128();
+	ctr_block = _mm_loadu_si128(((__m128i*)ivec));//that is problaby wrong
+	or_mask = _mm_setr_epi32(0, 0, 0, 0x80000000);
+	ctr_block = _mm_or_si128(ctr_block, or_mask);
+	for (i = 0; i< (length - length % 8); i = i + 8)
+	{
+		tmp = ctr_block;
+		tmp1 = _mm_add_epi32(ctr_block, ONE);
+		tmp2 = _mm_add_epi32(ctr_block, TWO);
+		tmp3 = _mm_add_epi32(tmp2, ONE);
+		tmp4 = _mm_add_epi32(tmp2, TWO);
+		tmp5 = _mm_add_epi32(tmp4, ONE);
+		tmp6 = _mm_add_epi32(tmp4, TWO);
+		tmp7 = _mm_add_epi32(tmp6, ONE);
+		ctr_block = _mm_add_epi32(tmp6, TWO);
+		tmp = _mm_xor_si128(tmp, ((__m128i*)ctx->roundkey)[0]);
+		tmp1 = _mm_xor_si128(tmp1, ((__m128i*)ctx->roundkey)[0]);
+		tmp2 = _mm_xor_si128(tmp2, ((__m128i*)ctx->roundkey)[0]);
+		tmp3 = _mm_xor_si128(tmp3, ((__m128i*)ctx->roundkey)[0]);
+		tmp4 = _mm_xor_si128(tmp4, ((__m128i*)ctx->roundkey)[0]);
+		tmp5 = _mm_xor_si128(tmp5, ((__m128i*)ctx->roundkey)[0]);
+		tmp6 = _mm_xor_si128(tmp6, ((__m128i*)ctx->roundkey)[0]);
+		tmp7 = _mm_xor_si128(tmp7, ((__m128i*)ctx->roundkey)[0]);
+		for (j = 1; j <ctx->nr; j++) {
+			tmp = _mm_aesenc_si128(tmp, ((__m128i*)ctx->roundkey)[j]);
+			tmp1 = _mm_aesenc_si128(tmp1, ((__m128i*)ctx->roundkey)[j]);
+			tmp2 = _mm_aesenc_si128(tmp2, ((__m128i*)ctx->roundkey)[j]);
+			tmp3 = _mm_aesenc_si128(tmp3, ((__m128i*)ctx->roundkey)[j]);
+			tmp4 = _mm_aesenc_si128(tmp4, ((__m128i*)ctx->roundkey)[j]);
+			tmp5 = _mm_aesenc_si128(tmp5, ((__m128i*)ctx->roundkey)[j]);
+			tmp6 = _mm_aesenc_si128(tmp6, ((__m128i*)ctx->roundkey)[j]);
+			tmp7 = _mm_aesenc_si128(tmp7, ((__m128i*)ctx->roundkey)[j]);
+		};
+		tmp = _mm_aesenclast_si128(tmp, ((__m128i*)ctx->roundkey)[j]);
+		tmp1 = _mm_aesenclast_si128(tmp1, ((__m128i*)ctx->roundkey)[j]);
+		tmp2 = _mm_aesenclast_si128(tmp2, ((__m128i*)ctx->roundkey)[j]);
+		tmp3 = _mm_aesenclast_si128(tmp3, ((__m128i*)ctx->roundkey)[j]);
+		tmp4 = _mm_aesenclast_si128(tmp4, ((__m128i*)ctx->roundkey)[j]);
+		tmp5 = _mm_aesenclast_si128(tmp5, ((__m128i*)ctx->roundkey)[j]);
+		tmp6 = _mm_aesenclast_si128(tmp6, ((__m128i*)ctx->roundkey)[j]);
+		tmp7 = _mm_aesenclast_si128(tmp7, ((__m128i*)ctx->roundkey)[j]);
+		tmp = _mm_xor_si128(tmp, _mm_loadu_si128(&((__m128i*)in)[i]));
+		tmp1 = _mm_xor_si128(tmp1, _mm_loadu_si128(&((__m128i*)in)[i + 1]));
+		tmp2 = _mm_xor_si128(tmp2, _mm_loadu_si128(&((__m128i*)in)[i + 2]));
+		tmp3 = _mm_xor_si128(tmp3, _mm_loadu_si128(&((__m128i*)in)[i + 3]));
+		tmp4 = _mm_xor_si128(tmp4, _mm_loadu_si128(&((__m128i*)in)[i + 4]));
+		tmp5 = _mm_xor_si128(tmp5, _mm_loadu_si128(&((__m128i*)in)[i + 5]));
+		tmp6 = _mm_xor_si128(tmp6, _mm_loadu_si128(&((__m128i*)in)[i + 6]));
+		tmp7 = _mm_xor_si128(tmp7, _mm_loadu_si128(&((__m128i*)in)[i + 7]));
+		_mm_storeu_si128(&((__m128i*)out)[i], tmp);
+		_mm_storeu_si128(&((__m128i*)out)[i + 1], tmp1);
+		_mm_storeu_si128(&((__m128i*)out)[i + 2], tmp2);
+		_mm_storeu_si128(&((__m128i*)out)[i + 3], tmp3);
+		_mm_storeu_si128(&((__m128i*)out)[i + 4], tmp4);
+		_mm_storeu_si128(&((__m128i*)out)[i + 5], tmp5);
+		_mm_storeu_si128(&((__m128i*)out)[i + 6], tmp6);
+		_mm_storeu_si128(&((__m128i*)out)[i + 7], tmp7);
+	}
+	// The remainder_loc is used to remember the location of our block handled 
+	remainder_loc = length - length % 8;
+	for (i = 0; i < (length % 8); i++)
+	{
+		tmp = ctr_block;
+		ctr_block = _mm_add_epi32(ctr_block, ONE);
+		tmp = _mm_xor_si128(tmp, ((__m128i*)ctx->roundkey)[0]);
+
+		for (j = 1; j <ctx->nr; j++) {
+			tmp = _mm_aesenc_si128(tmp, ((__m128i*)ctx->roundkey)[j]);
+		};
+		tmp = _mm_aesenclast_si128(tmp, ((__m128i*)ctx->roundkey)[j]);
+		tmp = _mm_xor_si128(tmp, _mm_loadu_si128(&((__m128i*)in)[remainder_loc + i]));
+		_mm_storeu_si128(&((__m128i*)out)[remainder_loc + i], tmp);
+	}
+	if (has_semi != 0)
+	{
+		uint8_t BLK[16] = { 0 };
+		memcpy(BLK, in + length * 16, has_semi);
+		tmp = ctr_block;
+		ctr_block = _mm_add_epi32(ctr_block, ONE);
+		tmp = _mm_xor_si128(tmp, ((__m128i*)ctx->roundkey)[0]);
+
+		for (j = 1; j <ctx->nr; j++) {
+			tmp = _mm_aesenc_si128(tmp, ((__m128i*)ctx->roundkey)[j]);
+		};
+		tmp = _mm_aesenclast_si128(tmp, ((__m128i*)ctx->roundkey)[j]);
+		*(__m128i*)BLK = _mm_xor_si128(tmp, *(__m128i*)BLK);
+		memset(BLK + has_semi, 0, 16 - has_semi);
+		memcpy(out + length * 16, BLK, has_semi);
+	}
 }

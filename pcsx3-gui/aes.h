@@ -177,6 +177,11 @@ int aes_crypt_ctr( aes_context *ctx,
 void AES_ECB_encrypt(const unsigned char *in,unsigned char *out,unsigned long length,const unsigned char *key,int nr);
 void aes_cmac(aes_context *ctx, int length, unsigned char *input, unsigned char *output);
 
+void AES_CTR_encrypt(aes_context *ctx, const unsigned char *in,
+	unsigned char *out,
+	const unsigned char *ivec,
+	const unsigned char nonce[4],
+	unsigned long length);
 #ifdef __cplusplus
 }
 #endif
