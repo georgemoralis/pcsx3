@@ -861,7 +861,7 @@ void AESNI_encrypt(const unsigned char *in, //pointer to the PLAINTEXT
 	const unsigned char *key, //pointer to the expanded key schedule
 	int number_of_rounds) //number of AES rounds 10,12 or 14
 {
-	/*__m128i tmp;
+	__m128i tmp;
 	int j;
 	tmp = _mm_loadu_si128(&((__m128i*)in)[0]);
 	tmp = _mm_xor_si128(tmp, ((__m128i*)key)[0]);
@@ -869,9 +869,9 @@ void AESNI_encrypt(const unsigned char *in, //pointer to the PLAINTEXT
 		tmp = _mm_aesenc_si128(tmp, ((__m128i*)key)[j]);
 	}
 	tmp = _mm_aesenclast_si128(tmp, ((__m128i*)key)[j]);
-	_mm_storeu_si128(&(((__m128i*)out)[0]), tmp);*/
+	_mm_storeu_si128(&(((__m128i*)out)[0]), tmp);
 	//in package of three
-	__m128i tmp1, tmp2, tmp3;
+	/*__m128i tmp1, tmp2, tmp3;
 	__m128i *Key_Schedule = (__m128i*)key;
 	int i, j;
 
@@ -903,7 +903,7 @@ void AESNI_encrypt(const unsigned char *in, //pointer to the PLAINTEXT
 
 	_mm_storeu_si128(&((__m128i*)out)[0], tmp1);
 	_mm_storeu_si128(&((__m128i*)out)[1], tmp2);
-	_mm_storeu_si128(&((__m128i*)out)[2], tmp3);
+	_mm_storeu_si128(&((__m128i*)out)[2], tmp3);*/
 
 }
 
