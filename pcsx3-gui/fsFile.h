@@ -26,12 +26,21 @@ public:
 	bool IsOpen() const;
 	bool Close();
 	bool Read(void* dst, U64 size);
-	U32 ReadBytes(void* dst, U64 size);
+    U32 ReadBytes(void* dst, U64 size);
 	bool Write(const void* src, U64 size);
 	bool Seek(S64 offset, fsSeekMode mode);
 	U64 getFileSize();
 	U64 Tell() const;
 	~fsFile();
+
+    template< typename T > bool ReadBE(T & dst)
+    {
+        if (!Read(&dst, sizeof(T))) {
+            return false;
+        }
+        ::ReadBE(dst);
+        return true;
+    }
 
 	const char* getOpenMode(fsOpenMode mode)
 	{

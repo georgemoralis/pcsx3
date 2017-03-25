@@ -23,8 +23,8 @@ bool PUP::Read(const std::string& filepath, const std::string& extractPath)
 	fsFile file;
 	file.Open(filepath, fsRead);
 	PUPHeader pupheader;
-	file.Read(&pupheader, sizeof(pupheader));
-	if (FromBigEndian(pupheader.magic) >> 32 != 0x53434555)//magic is not correct
+	file.ReadBE(pupheader);
+	if (pupheader.magic >> 32 != 0x53434555)//magic is not correct
 	{
 		file.Close();
 		return false;
@@ -33,17 +33,17 @@ bool PUP::Read(const std::string& filepath, const std::string& extractPath)
 	{
 		printPUPHeader(pupheader);
 		
-		U64 filenumber = FromBigEndian(pupheader.file_count);
-		for (int i = 0; i < FromBigEndian(pupheader.file_count); i++)
+		U64 filenumber = pupheader.file_count;
+		for (int i = 0; i < pupheader.file_count; i++)
 		{
 			file.Seek(0x30 + (0x20 * i), fsSeekSet);
 			PUPFileEntry fentry;
-			file.Read(&fentry, sizeof(fentry));
-			if (FromBigEndian(fentry.entry_id) == 0x300)
+			file.ReadBE(fentry);
+			if (fentry.entry_id == 0x300)
 			{
 				printPUPFileEntries(pupheader, fentry);
-				U64 length = FromBigEndian(fentry.data_length);
-				U64 offset = FromBigEndian(fentry.data_offset);
+				U64 length = fentry.data_length;
+				U64 offset = fentry.data_offset;
 	
 				char *f = new char[length];
 				file.Seek(offset, fsSeekSet);
@@ -248,17 +248,17 @@ void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 //debug info
 void PUP::printPUPHeader(PUPHeader puph)
 {
-	infof(PUP, "%-30s 0x%x","magic : ",FromBigEndian(puph.magic)>>32);
-	infof(PUP, "%-30s 0x%x","package_version : ",FromBigEndian(puph.package_version));
-	infof(PUP, "%-30s 0x%x","image_version : ", FromBigEndian(puph.image_version));
-	infof(PUP, "%-30s 0x%x","file_count : ", FromBigEndian(puph.file_count));
-	infof(PUP, "%-30s 0x%x","header_length : ", FromBigEndian(puph.header_length));
-	infof(PUP, "%-30s 0x%x","data_length : ", FromBigEndian(puph.data_length));
+	infof(PUP, "%-30s 0x%x","magic : ",(puph.magic)>>32);
+	infof(PUP, "%-30s 0x%x","package_version : ",(puph.package_version));
+	infof(PUP, "%-30s 0x%x","image_version : ", (puph.image_version));
+	infof(PUP, "%-30s 0x%x","file_count : ", (puph.file_count));
+	infof(PUP, "%-30s 0x%x","header_length : ", (puph.header_length));
+	infof(PUP, "%-30s 0x%x","data_length : ", (puph.data_length));
 }
 void PUP::printPUPFileEntries(PUPHeader puph, PUPFileEntry fentry)
 {
-	infof(PUP, "%-30s %s", "entry_name : ", id2name(FromBigEndian(fentry.entry_id), entries,NULL));
-	infof(PUP, "%-30s 0x%x", "entry_id : ", FromBigEndian(fentry.entry_id));
-	infof(PUP, "%-30s 0x%x", "data_offset : ", FromBigEndian(fentry.data_offset));
-	infof(PUP, "%-30s 0x%x", "data_length : ", FromBigEndian(fentry.data_length));
+	infof(PUP, "%-30s %s", "entry_name : ", id2name((fentry.entry_id), entries,NULL));
+	infof(PUP, "%-30s 0x%x", "entry_id : ", (fentry.entry_id));
+	infof(PUP, "%-30s 0x%x", "data_offset : ", (fentry.data_offset));
+	infof(PUP, "%-30s 0x%x", "data_length : ", (fentry.data_length));
 }

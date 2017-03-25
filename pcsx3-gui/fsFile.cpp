@@ -46,6 +46,7 @@ bool fsFile::Read(void* dst, U64 size)
 	}
 	return true;
 }
+
 U32 fsFile::ReadBytes(void* dst, U64 size)
 {
 	return std::fread(dst, 1, size, m_file);

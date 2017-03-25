@@ -4,43 +4,72 @@
 #include "fsFile.h"
 
 //Header
-typedef struct {
-	U64 magic;
-	U64 package_version;
-	U64 image_version;
-	U64 file_count;
-	U64 header_length;
-	U64 data_length;
+typedef struct PUPHeader
+{
+	u64 magic;
+    u64 package_version;
+    u64 image_version;
+    u64 file_count;
+    u64 header_length;
+    u64 data_length;
 } PUPHeader;
 
+inline void ReadBE(PUPHeader & s)
+{
+    ReadBE(s.magic);
+    ReadBE(s.package_version);
+    ReadBE(s.image_version);
+    ReadBE(s.file_count);
+    ReadBE(s.header_length);
+    ReadBE(s.data_length);
+}
+
 //File Entry 
-typedef struct {
+typedef struct PUPFileEntry
+{
 	U64 entry_id;
 	U64 data_offset;
 	U64 data_length;
 	U08 padding[8];
 } PUPFileEntry;
 
+inline void ReadBE(PUPFileEntry & s)
+{
+    ReadBE(s.entry_id);
+    ReadBE(s.data_offset);
+    ReadBE(s.data_length);
+}
+
 //Hash Entry 
-typedef struct {
+typedef struct PUPHashEntry
+{
 	U64 entry_id;
 	U08 hash[20];
 	U08 padding[4];
 } PUPHashEntry;
 
+inline void ReadBE(PUPHashEntry & s)
+{
+    ReadBE(s.entry_id);
+}
+
 //Footer
-typedef struct
+typedef struct PUPFooter
 {
 	U08 hash[20];
 	U08 padding[12];
 } PUPFooter;
 
+inline void ReadBE(PUPFooter & s)
+{
+}
+
 //Entry Id 
-struct PUPEntryID {
+struct PUPEntryID
+{
 	U64 id;
 	const char *filename;
 };
-
 
 //PUPEntryID entries 
 static struct PUPEntryID entries[] = {
