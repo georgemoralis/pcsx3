@@ -192,7 +192,8 @@ void PUP::sce_decrypt_header(U08 *ptr)
 	aes_setkey_dec(&aes, key->erk, 256);
 	auto& meta_info = (MetadataInfo&)ptr[sizeof(SceHeader) + FromBigEndian(sce_header.metadata_offset)];
 
-	aes_crypt_cbc(&aes, AES_DECRYPT, sizeof(MetadataInfo), metadata_iv, (U08*)&meta_info, (U08*)&meta_info);
+	AES_CBC_decrypt(&aes,sizeof(MetadataInfo), metadata_iv, (U08*)&meta_info, (U08*)&meta_info);
+	//aes_crypt_cbc(&aes, AES_DECRYPT, sizeof(MetadataInfo), metadata_iv, (U08*)&meta_info, (U08*)&meta_info);
 
 	// Decrypt Metadata Headers (Metadata Header + Metadata Section Headers)
 	U08 ctr_stream_block[0x10];

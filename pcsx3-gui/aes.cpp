@@ -1479,3 +1479,60 @@ void AES_CTR_encrypt(aes_context *ctx, const unsigned char *in,
 		memcpy(out + length * 16, BLK, has_semi);
 	}
 }
+
+void AES_CBC_decrypt(aes_context *ctx, unsigned long length, unsigned char ivec[16],const unsigned char *in,unsigned char *out)
+{
+	//_parallelize_4_blocks
+	__m128i data1, data2, data3, data4;
+	__m128i feedback1, feedback2, feedback3, feedback4, last_in;
+	int i, j;
+	if (length % 16)
+		length = length / 16 + 1;
+	else length /= 16;
+	feedback1 = _mm_loadu_si128((__m128i*)ivec);
+	for (i = 0; i < length / 4; i++) {
+		data1 = _mm_loadu_si128(&((__m128i*)in)[i * 4 + 0]);
+		data2 = _mm_loadu_si128(&((__m128i*)in)[i * 4 + 1]);
+		data3 = _mm_loadu_si128(&((__m128i*)in)[i * 4 + 2]);
+		data4 = _mm_loadu_si128(&((__m128i*)in)[i * 4 + 3]);
+		feedback2 = data1;
+		feedback3 = data2;
+		feedback4 = data3;
+		last_in = data4;
+		data1 = _mm_xor_si128(data1, ((__m128i*)ctx->roundkey)[0]);
+		data2 = _mm_xor_si128(data2, ((__m128i*)ctx->roundkey)[0]);
+		data3 = _mm_xor_si128(data3, ((__m128i*)ctx->roundkey)[0]);
+		data4 = _mm_xor_si128(data4, ((__m128i*)ctx->roundkey)[0]);
+		for (j = 1; j < ctx->nr; j++) {
+			data1 = _mm_aesdec_si128(data1, ((__m128i*)ctx->roundkey)[j]);
+			data2 = _mm_aesdec_si128(data2, ((__m128i*)ctx->roundkey)[j]);
+			data3 = _mm_aesdec_si128(data3, ((__m128i*)ctx->roundkey)[j]);
+			data4 = _mm_aesdec_si128(data4, ((__m128i*)ctx->roundkey)[j]);
+		}
+		data1 = _mm_aesdeclast_si128(data1, ((__m128i*)ctx->roundkey)[j]);
+		data2 = _mm_aesdeclast_si128(data2, ((__m128i*)ctx->roundkey)[j]);
+		data3 = _mm_aesdeclast_si128(data3, ((__m128i*)ctx->roundkey)[j]);
+		data4 = _mm_aesdeclast_si128(data4, ((__m128i*)ctx->roundkey)[j]);
+		data1 = _mm_xor_si128(data1, feedback1);
+		data2 = _mm_xor_si128(data2, feedback2);
+		data3 = _mm_xor_si128(data3, feedback3);
+		data4 = _mm_xor_si128(data4, feedback4);
+		_mm_storeu_si128(&((__m128i*)out)[i * 4 + 0], data1);
+		_mm_storeu_si128(&((__m128i*)out)[i * 4 + 1], data2);
+		_mm_storeu_si128(&((__m128i*)out)[i * 4 + 2], data3);
+		_mm_storeu_si128(&((__m128i*)out)[i * 4 + 3], data4);
+		feedback1 = last_in;
+	}
+	for (j = i * 4; j < length; j++) {
+		data1 = _mm_loadu_si128(&((__m128i*)in)[j]);
+		last_in = data1;
+		data1 = _mm_xor_si128(data1, ((__m128i*)ctx->roundkey)[0]);
+		for (i = 1; i < ctx->nr; i++) {
+			data1 = _mm_aesdec_si128(data1, ((__m128i*)ctx->roundkey)[i]);
+		}
+		data1 = _mm_aesdeclast_si128(data1, ((__m128i*)ctx->roundkey)[i]);
+		data1 = _mm_xor_si128(data1, feedback1);
+		_mm_storeu_si128(&((__m128i*)out)[j], data1);
+		feedback1 = last_in;
+	}
+}
