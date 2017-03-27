@@ -201,6 +201,9 @@ void PUP::sce_decrypt_header(U08 *ptr)
 	U32 meta_headers_size = FromBigEndian(sce_header.header_length) - (sizeof(SceHeader) + FromBigEndian(sce_header.metadata_offset) + sizeof(MetadataInfo));
 	U64 ctr_nc_off = 0;
 	aes_setkey_enc(&aes, meta_info.key, 128);
+
+
+	//AES_CTR_encrypt(&aes, meta_headers_size, meta_info.iv, meta_headers, meta_headers);
 	aes_crypt_ctr(&aes, meta_headers_size, &ctr_nc_off, meta_info.iv, ctr_stream_block, meta_headers, meta_headers);
 
 }
@@ -231,6 +234,7 @@ void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 			U08 ctr_stream_block[0x10] = {};
 			U64 ctr_nc_off = 0;
 			aes_setkey_enc(&aes, data_key, 128);
+			//AES_CTR_encrypt(&aes, FromBigEndian(meta_shdr.data_size),data_iv,data_decrypted, data_decrypted);
 			aes_crypt_ctr(&aes, FromBigEndian(meta_shdr.data_size), &ctr_nc_off, data_iv, ctr_stream_block, data_decrypted, data_decrypted);
 		}
 		if (FromBigEndian(meta_shdr.compressed) == 2)
