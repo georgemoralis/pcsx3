@@ -1568,6 +1568,7 @@ void AES_CTR_encrypt(aes_context *ctx, unsigned long length, unsigned char ivec[
 			if (++ivec[k - 1] != 0)
 				break;
 		}
+		tmp= _mm_setzero_si128();
 		tmp = _mm_loadu_si128(&((__m128i*)ivec)[0]);
 		//tmp = _mm_shuffle_epi8(ctr_block, BSWAP_EPI64);
 		//ctr_block = _mm_add_epi64(ctr_block, ONE);

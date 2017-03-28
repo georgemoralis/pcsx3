@@ -146,7 +146,7 @@ U08* PUP::decryptpkg(U08 *pkg,U32 &filesize)
 	//hdr_len = FromBigEndian((U32&)pkg + 0x10);
 	//dec_size = FromBigEndian((U64&)pkg + 0x18);
 	sce_decrypt_header(pkg);
-	filesize = FromBigEndian(sce_header.data_length)-0x80;
+	filesize = FromBigEndian(sce_header.data_length) -0x80;
 	U08* extracted = new U08[filesize];
 	sce_decrypt_data(pkg,extracted);
 	return extracted;
@@ -203,8 +203,8 @@ void PUP::sce_decrypt_header(U08 *ptr)
 	aes_setkey_enc(&aes, meta_info.key, 128);
 
 
-	//AES_CTR_encrypt(&aes, meta_headers_size, meta_info.iv, meta_headers, meta_headers);
-	aes_crypt_ctr(&aes, meta_headers_size, &ctr_nc_off, meta_info.iv, ctr_stream_block, meta_headers, meta_headers);
+	AES_CTR_encrypt(&aes, meta_headers_size, meta_info.iv, meta_headers, meta_headers);
+	//aes_crypt_ctr(&aes, meta_headers_size, &ctr_nc_off, meta_info.iv, ctr_stream_block, meta_headers, meta_headers);
 
 }
 void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
@@ -218,7 +218,7 @@ void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 	U08* data = new U08[FromBigEndian(sce_header.data_length)];
 	for (U32 i = 0; i < FromBigEndian(meta_header.section_count); i++) {
 		const auto& meta_shdr = (MetadataSectionHeader&)ptr[meta_header_off + sizeof(MetadataHeader) + i * sizeof(MetadataSectionHeader)];
-		U08* data_decrypted = new U08[FromBigEndian(meta_shdr.data_size)];
+		U08* data_decrypted = new U08[FromBigEndian(meta_shdr.data_size)+15];//keep it 16byte aligned
 
 		U08 data_key[0x10];
 		U08 data_iv[0x10];
@@ -234,8 +234,8 @@ void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 			U08 ctr_stream_block[0x10] = {};
 			U64 ctr_nc_off = 0;
 			aes_setkey_enc(&aes, data_key, 128);
-			//AES_CTR_encrypt(&aes, FromBigEndian(meta_shdr.data_size),data_iv,data_decrypted, data_decrypted);
-			aes_crypt_ctr(&aes, FromBigEndian(meta_shdr.data_size), &ctr_nc_off, data_iv, ctr_stream_block, data_decrypted, data_decrypted);
+			AES_CTR_encrypt(&aes, FromBigEndian(meta_shdr.data_size),data_iv,data_decrypted, data_decrypted);
+			//aes_crypt_ctr(&aes, FromBigEndian(meta_shdr.data_size), &ctr_nc_off, data_iv, ctr_stream_block, data_decrypted, data_decrypted);
 		}
 		if (FromBigEndian(meta_shdr.compressed) == 2)
 		{
