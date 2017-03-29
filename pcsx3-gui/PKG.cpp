@@ -100,7 +100,8 @@ bool PKG::extract(const std::string& filepath, const std::string& extractPath, s
 
 	U08 ctr_stream_block[0x10];
 	U64 ctr_nc_off = 0;
-	aes_crypt_ctr(&aes, size, &ctr_nc_off, iv, ctr_stream_block, pkg+offset, pkg+offset);
+	//aes_crypt_ctr(&aes, size, &ctr_nc_off, iv, ctr_stream_block, pkg+offset, pkg+offset);
+	AES_CTR_encrypt(&aes, size, iv, pkg + offset, pkg + offset);
 	
 	char fname[256];
 	n_files = FromBigEndian(pkgheader.item_count);
