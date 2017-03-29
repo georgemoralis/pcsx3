@@ -8,6 +8,7 @@
 #include <stdio.h> 
 #include "../pcsx3-gui/pcsx3gui.h"
 #include "../pcsx3/src/crypto.keyvault.h"
+#include "bench.h"
 using namespace std;
 
 PUP::PUP()
@@ -234,8 +235,9 @@ void PUP::sce_decrypt_data(U08 *ptr,U08 *extracted)
 			U08 ctr_stream_block[0x10] = {};
 			U64 ctr_nc_off = 0;
 			aes_setkey_enc(&aes, data_key, 128);
-			AES_CTR_encrypt(&aes, FromBigEndian(meta_shdr.data_size),data_iv,data_decrypted, data_decrypted);
-			//aes_crypt_ctr(&aes, FromBigEndian(meta_shdr.data_size), &ctr_nc_off, data_iv, ctr_stream_block, data_decrypted, data_decrypted);
+			/*MEASURE({*/ AES_CTR_encrypt(&aes, FromBigEndian(meta_shdr.data_size),data_iv,data_decrypted, data_decrypted); /*});*/
+			//MEASURE({ aes_crypt_ctr(&aes, FromBigEndian(meta_shdr.data_size), &ctr_nc_off, data_iv, ctr_stream_block, data_decrypted, data_decrypted); });
+			infof(PUP, "File size %d Total clks : %.2f",FromBigEndian(meta_shdr.data_size), RDTSC_total_clk);
 		}
 		if (FromBigEndian(meta_shdr.compressed) == 2)
 		{

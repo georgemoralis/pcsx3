@@ -139,5 +139,8 @@
     <ClInclude Include="..\pcsx3\src\crypto.keyvault.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="bench.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
