@@ -4,46 +4,68 @@
 #include <io.h>
 #include <windows.h>
 
-enum PKGRevision : U16 {
+enum PKGRevision : u16 {
 	PKG_REVISION_DEBUG = 0x0000,
 	PKG_REVISION_RELEASE = 0x8000,
 };
 
-enum PKGType : U16 {
+enum PKGType : u16 {
 	PKG_TYPE_PS3 = 0x0001,  // PlayStation 3
 	PKG_TYPE_PSP = 0x0002,  // PlayStation Portable
 };
 
 struct PKGHeader {
-	/*BE*/U32 magic;                  // Magic
-	/*BE*/U16 pkg_revision;           // Revision
-	/*BE*/U16 pkg_type;               // Type
-	U32 pkg_info_offset;        // Info offset
-	U32 pkg_info_count;         // Info count
-	U32 header_size;            // Header size (usually 0xC0)
-	U32 item_count;             // Files and folders in the encrypted data
-	U64 total_size;             // Total PKG file size
-	U64 data_offset;            // Encrypted data offset
-	U64 data_size;              // Encrypted data size
-	S08 contentid[48];               // Content ID (similar to "XX####-XXXX#####_##-XXXXXXXXXXXX####")
-	S08 digest[16];                  // SHA1 hash from files and attributes
-	S08 klicensee[16];               // AES-128-CTR IV
-	S08 header_cmac_hash[16];        // CMAC OMAC hash of [0x00, 0x7F]
-	S08 header_npdrm_signature[40];  // Header NPDRM ECDSA (R_sig, S_sig)
-	S08 header_sha1_hash[8];         // Last 8 bytes of SHA1 of [0x00, 0x7F]
+	/*BE*/u32 magic;                  // Magic
+	/*BE*/u16 pkg_revision;           // Revision
+	/*BE*/u16 pkg_type;               // Type
+	/*BE*/u32 pkg_info_offset;        // Info offset
+	/*BE*/u32 pkg_info_count;         // Info count
+	/*BE*/u32 header_size;            // Header size (usually 0xC0)
+	/*BE*/u32 item_count;             // Files and folders in the encrypted data
+	/*BE*/u64 total_size;             // Total PKG file size
+	/*BE*/u64 data_offset;            // Encrypted data offset
+	/*BE*/u64 data_size;              // Encrypted data size
+	s8 contentid[48];               // Content ID (similar to "XX####-XXXX#####_##-XXXXXXXXXXXX####")
+	s8 digest[16];                  // SHA1 hash from files and attributes
+	s8 klicensee[16];               // AES-128-CTR IV
+	s8 header_cmac_hash[16];        // CMAC OMAC hash of [0x00, 0x7F]
+	s8 header_npdrm_signature[40];  // Header NPDRM ECDSA (R_sig, S_sig)
+	s8 header_sha1_hash[8];         // Last 8 bytes of SHA1 of [0x00, 0x7F]
 };
+inline void ReadBE(PKGHeader & s)
+{
+	ReadBE(s.magic);
+	ReadBE(s.pkg_revision);
+	ReadBE(s.pkg_type);
+	ReadBE(s.pkg_info_offset);
+	ReadBE(s.pkg_info_count);
+	ReadBE(s.header_size);
+	ReadBE(s.item_count);
+	ReadBE(s.total_size);
+	ReadBE(s.data_offset);
+	ReadBE(s.data_size);
+}
 
 struct PKGEntry {
-	U32 name_offset;
-	U32 name_size;
-	U64 data_offset;
-	U64 data_size;
-	U32 type;
+	/*BE*/u32 name_offset;
+	/*BE*/u32 name_size;
+	/*BE*/u64 data_offset;
+	/*BE*/u64 data_size;
+	/*BE*/u32 type;
 	U32 padding;
 };
+inline void ReadBE(PKGEntry & s)
+{
+	ReadBE(s.name_offset);
+	ReadBE(s.name_size);
+	ReadBE(s.data_offset);
+	ReadBE(s.data_size);
+	ReadBE(s.type);
+}
+
 struct PKGFooter
 {
-	S08 sha1[20];//size??
+	s8 sha1[20];//size??
 };
 
 class PKG

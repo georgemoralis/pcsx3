@@ -23,7 +23,7 @@ bool PKG::open(const std::string& filepath) {
 	}
 	pkgSize = file.getFileSize();
 	PKGHeader pkgheader;
-	file.Read(&pkgheader, sizeof(pkgheader));
+	file.ReadBE(pkgheader);
 	//todo check if magic is valid
 
 	file.Seek(55, fsSeekSet);
@@ -60,23 +60,23 @@ bool PKG::extract(const std::string& filepath, const std::string& extractPath, s
 	}
 	pkgSize = file.getFileSize();
 	PKGHeader pkgheader;
-	file.Read(&pkgheader, sizeof(pkgheader));
-	if (FromBigEndian(pkgheader.pkg_revision) != PKG_REVISION_RELEASE)
+	file.ReadBE(pkgheader);
+	if (pkgheader.pkg_revision != PKG_REVISION_RELEASE)
 	{
 		failreason="Debug pkgs not supported (yet)";
 		return false;//we support only release pkgs for now
 	}
-	if (FromBigEndian(pkgheader.pkg_type) != PKG_TYPE_PS3)
+	if (pkgheader.pkg_type != PKG_TYPE_PS3)
 	{
 		failreason = "Only PS3 pkgs supported (yet)";
 		return false; //we support only PS3 pkgs for now
 	}
-	if (FromBigEndian(pkgheader.total_size) > pkgSize)
+	if (pkgheader.total_size > pkgSize)
 	{
 		failreason = "PKG file size is different";
 		return false;
 	}
-	if (FromBigEndian(pkgheader.data_size + pkgheader.data_offset) > FromBigEndian(pkgheader.total_size))
+	if ((pkgheader.data_size + pkgheader.data_offset) > pkgheader.total_size)
 	{
 		failreason = "Data size is bigger than pkg size";
 		return false;
@@ -86,10 +86,10 @@ bool PKG::extract(const std::string& filepath, const std::string& extractPath, s
 	pkg = (U08 *)mmap(pkgSize,file.fileDescr());
 	
 	file.Read(pkg, pkgSize);
-	offset = FromBigEndian(pkgheader.data_offset);
-	U64 size = FromBigEndian(pkgheader.data_size);
+	offset = pkgheader.data_offset;
+	U64 size = pkgheader.data_size;
 	U08 iv[0x10];
-	memcpy(iv, pkg + 0x70, 0x10);
+	memcpy(iv, pkgheader.klicensee, 0x10);
 
 	aes_context aes;
 	U08  PS3AesKey[] = {
@@ -104,21 +104,17 @@ bool PKG::extract(const std::string& filepath, const std::string& extractPath, s
 	AES_CTR_encrypt(&aes, size, iv, pkg + offset, pkg + offset);
 	
 	char fname[256];
-	n_files = FromBigEndian(pkgheader.item_count);
+	n_files = pkgheader.item_count;
 	
 	for (int i = 0; i < n_files; i++) {
 		PKGEntry entry = (PKGEntry&)pkg[offset + i * 0x20];
-		U32 fname_len = FromBigEndian(entry.name_size);
-		U32 fname_off = FromBigEndian(entry.name_offset);
-		U32 flags = FromBigEndian(entry.type);
-		U64 file_offset = FromBigEndian(entry.data_offset);
-		U64 file_size = FromBigEndian(entry.data_size);
+		ReadBE(entry);
 
 		memset(fname, 0, sizeof(fname));
-		strncpy(fname, (char *)(pkg + offset + fname_off), fname_len);
+		strncpy(fname, (char *)(pkg + offset + entry.name_offset), entry.name_size);
 
-		flags &= 0xff;
-		if (flags == 4)
+		entry.type &= 0xff;
+		if (entry.type == 4)
 		{
 			std::string path = extractPath + std::string(fname);
 			_mkdir(path.c_str());//nasty but we will redo this
@@ -127,7 +123,7 @@ bool PKG::extract(const std::string& filepath, const std::string& extractPath, s
 		{
 			fsFile out;
 			out.Open(extractPath + fname, fsWrite);
-			out.Write(pkg + offset + file_offset, file_size);
+			out.Write(pkg + offset + entry.data_offset, entry.data_size);
 			out.Close();
 		}
 	}
